@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import Square from './Square';
+import PromotionDialog from './PromotionDialog';
 import { ChessPiece, PieceColor, BoardPosition } from '@/types';
 import { useGame } from '@/context/GameContext';
 
@@ -14,7 +15,16 @@ interface ChessBoardProps {
 }
 
 const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
-  const { gameState, position: contextPosition, makeMove } = useGame();
+  const { 
+    gameState, 
+    position: contextPosition, 
+    makeMove,
+    isWhiteInCheck,
+    isBlackInCheck,
+    isGameOver,
+    gameResult,
+    pendingPromotion
+  } = useGame();
   const currentPosition = position || contextPosition;
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
 
@@ -84,14 +94,58 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
     return rows;
   };
 
+  // 게임 상태 텍스트 생성
+  const getStatusText = () => {
+    if (isGameOver) {
+      if (gameState.gameStatus === 'checkmate') {
+        const winner = gameResult === '1-0' ? '백색' : '흑색';
+        return `체크메이트! ${winner} 승리`;
+      } else if (gameState.gameStatus === 'stalemate') {
+        return '스테일메이트! 무승부';
+      }
+    }
+    
+    if (isWhiteInCheck && gameState.currentPlayer === 'white') {
+      return '백색 킹이 체크 상태입니다!';
+    } else if (isBlackInCheck && gameState.currentPlayer === 'black') {
+      return '흑색 킹이 체크 상태입니다!';
+    }
+    
+    return gameState.currentPlayer === 'white' ? '백색 차례' : '흑색 차례';
+  };
+
+  // 프로모션 처리
+  const handlePromotion = (pieceType: 'queen' | 'rook' | 'bishop' | 'knight') => {
+    if (pendingPromotion) {
+      makeMove(pendingPromotion.from, pendingPromotion.to, pieceType);
+    }
+  };
+
+  const handlePromotionCancel = () => {
+    // 프로모션을 취소하는 경우, 아무 동작하지 않음 (게임 상태는 그대로 유지)
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.turnIndicator}>
-        {gameState.currentPlayer === 'white' ? '백색 차례' : '흑색 차례'}
+      <Text style={[
+        styles.turnIndicator,
+        (isWhiteInCheck || isBlackInCheck) && !isGameOver && styles.checkWarning,
+        isGameOver && styles.gameOver
+      ]}>
+        {getStatusText()}
       </Text>
       <View style={[styles.board, { width: BOARD_SIZE, height: BOARD_SIZE }]}>
         {renderBoard()}
       </View>
+      
+      {/* 프로모션 다이얼로그 */}
+      {pendingPromotion && (
+        <PromotionDialog
+          color={gameState.currentPlayer}
+          onSelect={handlePromotion}
+          onCancel={handlePromotionCancel}
+        />
+      )}
     </View>
   );
 };
@@ -106,6 +160,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
+  },
+  checkWarning: {
+    color: '#d32f2f',
+    backgroundColor: '#ffebee',
+    padding: 8,
+    borderRadius: 4,
+  },
+  gameOver: {
+    color: '#1976d2',
+    backgroundColor: '#e3f2fd',
+    padding: 8,
+    borderRadius: 4,
   },
   board: {
     borderWidth: 2,

@@ -14,7 +14,9 @@
       "Bash(pod install:*)",
       "Bash(echo $ANDROID_HOME)",
       "Bash(curl:*)",
-      "Bash(xcode-select:*)"
+      "Bash(xcode-select:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": [],

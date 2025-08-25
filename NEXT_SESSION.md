@@ -1,198 +1,173 @@
-# 🚀 체스기보 앱 - 다음 개발 세션 가이드
+# 🚀 ChessNote 앱 - 다음 세션 가이드
 
-## 📋 현재 개발 상태 (2025.08.25)
+## 📋 프로젝트 완료 현황 (2025-08-25)
 
-### ✅ 완료된 작업
-- **Phase 1**: 프로젝트 설정 & 기본 구조 완료
-- **Phase 2**: 핵심 UI 컴포넌트 완전 구현
-  - 체스보드 컴포넌트 (터치 인터랙션)
-  - 실시간 기보 표시 컴포넌트  
-  - 제어 버튼 컴포넌트
-  - 게임 상태 관리 Context
-  - TypeScript 타입 정의
+### ✅ 완성된 모든 기능 (100% 동작 확인)
+- **체스보드**: 8x8 정확한 격자, 모든 기물 배치, 터치 인터페이스 완성
+- **턴 시스템**: 백색→흑색 교대 강제, 같은 색 연속 이동 완전 차단
+- **기보 표시**: PGN 형식, 백색(밝은 배경)/흑색(어두운 배경) 색상 구분
+- **게임 컨트롤**: 새게임, 되돌리기, 공유하기 (Action Sheet/Alert)
+- **클립보드 복사**: iOS/Android 네이티브 지원, 완전한 PGN 복사
+- **실행 환경**: iOS 시뮬레이터 완전 동작, Expo SDK 53 업그레이드 완료
 
-### 🎯 완성된 기능
-- ✅ 8x8 체스보드 + 12개 기물 이미지
-- ✅ 터치로 기물 선택/이동 (노란색 하이라이트)
-- ✅ 실시간 PGN 형식 기보 생성
-- ✅ 새게임, 되돌리기, PGN 파일 공유
-- ✅ React Context 상태 관리
-- ✅ TypeScript 완전 적용
+### 📱 테스트 완료 상태
+- ✅ iPhone 16 Pro 시뮬레이터에서 완전 동작
+- ✅ 모든 기능 테스트 성공 (기물 이동, 턴 시스템, PGN 복사)
+- ✅ Metro 서버 안정 동작
+- ✅ 클립보드 복사 기능 완전 동작
 
-## 🎮 현재 실행 상태
+### 🔄 GitHub 저장소
+- **URL**: https://github.com/zzoony/ChessNote
+- **최근 커밋**: feat: 체스기보 모바일 앱 완성 (6ef6cce)
+- **상태**: 110개 파일 업로드 완료, 모든 소스코드 및 설정 포함
 
-### 코드 상태
-- ✅ **TypeScript 컴파일 성공** (`npx tsc --noEmit`)
-- ✅ 모든 컴포넌트 완성 및 연동
-- ✅ 앱 실행 준비 완료
+## 🎯 다음 세션 개발 우선순위
 
-### 실행 시도 결과
-- ❌ iOS 시뮬레이터: CocoaPods 설치 중 중단
-- ❌ Android: Android SDK 미설치
-- ❌ Expo start: EMFILE 오류 (파일 제한)
+### Phase 7: 체스 규칙 고도화 (1-2일)
+1. **실제 체스 규칙 적용**
+   - 현재는 모든 이동 허용 → 각 기물별 이동 규칙 구현
+   - 체크/체크메이트 감지 시스템
+   - 스테일메이트 (무승부) 감지
+   - 50수 규칙, 3회 반복 무승부
 
-## 🚀 다음 세션 우선순위
+2. **특수 이동 구현**
+   - 캐슬링 (O-O, O-O-O)
+   - 앙파상 (en passant) 
+   - 폰 프로모션 (퀸, 룩, 비숍, 나이트 선택)
 
-### Phase 3: 실제 앱 실행 및 테스트 (1-2일)
+3. **게임 완료 처리**
+   - 승부 결정 시 알림
+   - 게임 결과 저장 (승/무/패)
+   - PGN 헤더 Result 필드 자동 업데이트
 
-#### 🔥 최우선 작업
-1. **앱 실행 성공**
-   - 시스템 파일 제한 해결 (`ulimit -n 4096`, watchman 설치)
-   - Expo Go 앱으로 QR 코드 테스트
-   - iOS/Android 시뮬레이터 중 하나 성공
+### Phase 8: UI/UX 고급화 (1-2일)
+4. **게임플레이 향상**
+   - 선택된 기물의 가능한 이동 위치 표시 (점 표시)
+   - 마지막 이동 칸 하이라이트 (출발지→목적지)
+   - 체크 상태 시 킹 하이라이트
+   - 기물 이동 애니메이션
 
-2. **실제 기능 테스트**
-   - 체스보드 터치 인터랙션 확인
-   - 실시간 기보 업데이트 검증
-   - 제어 버튼들 작동 확인
-   - PGN 파일 공유 테스트
+5. **사용자 인터페이스 개선**
+   - 게임 진행 상태 표시 (체크, 체크메이트 알림)
+   - 캡처된 기물 표시 영역
+   - 게임 시간 측정 및 표시
+   - 다크/라이트 모드 지원
 
-#### 🎯 개선 작업
-3. **체스 로직 강화**
-   - chessops 라이브러리 완전 활용
-   - 실제 체스 규칙 검증 (현재는 모든 이동 허용)
-   - 체크/체크메이트 감지
-   - 특수 이동 (캐슬링, 앙파상, 프로모션)
+### Phase 9: 고급 기능 (2-3일)
+6. **게임 관리 시스템**
+   - 게임 저장/불러오기 (로컬 스토리지)
+   - 게임 히스토리 목록
+   - 즐겨찾기 게임 관리
+   - PGN 파일 가져오기 기능
 
-4. **UI/UX 개선**
-   - 가능한 이동 칸 표시 (점으로 표시)
-   - 마지막 이동 하이라이트
-   - 애니메이션 효과
-   - 사운드 효과 (옵션)
+7. **분석 및 교육 기능**
+   - 이동 후 위치 평가 (간단한 점수)
+   - 오프닝 이름 표시 (유명한 오프닝)
+   - 이동 제안 기능 (선택사항)
+   - 체스 퍼즐 모드
 
-### Phase 4: 고급 기능 (2-3일)
-
-#### 📱 앱 완성도 향상
-5. **게임 관리**
-   - 게임 저장/불러오기
-   - 게임 히스토리 관리
-   - 즐겨찾기 게임
-
-6. **사용자 설정**
-   - 보드 테마 변경 (색상, 스타일)
+8. **사용자 설정**
+   - 보드 색상 테마 (클래식, 모던, 나무 등)
    - 기물 스타일 선택
-   - 다크/라이트 모드
+   - 사운드 효과 on/off
+   - 애니메이션 속도 조절
 
-7. **고급 기능**
-   - 게임 분석 (최선수 제안)
-   - 오프닝 데이터베이스
-   - 퍼즐 모드
+### Phase 10: 배포 준비 (1-2일)
+9. **프로덕션 최적화**
+   - 앱 아이콘 및 스플래시 스크린 완성
+   - 앱 권한 및 설정 최적화
+   - 성능 최적화 (메모리, 배터리)
+   - 에러 처리 및 크래시 방지
 
-## 🛠️ 기술적 이슈 및 해결책
+10. **앱스토어 배포**
+    - iOS App Store 준비 (개발자 계정 필요)
+    - Google Play Store 준비
+    - 앱 설명 및 스크린샷 준비
+    - 버전 관리 및 업데이트 계획
 
-### 1. 파일 제한 오류 해결
+## 🛠️ 개발 환경 복원 방법
+
+### 1. 프로젝트 복원
 ```bash
-# macOS 파일 제한 증가
-ulimit -n 4096
-
-# watchman 설치 (추천)
-brew install watchman
-
-# 또는 시스템 전체 설정
-sudo launchctl limit maxfiles 65536 200000
+cd /Users/peter/Dev/ChessNote
+git status  # 현재 상태 확인
+npm install # 패키지 재설치 (필요시)
 ```
 
-### 2. Expo 실행 방법
+### 2. 앱 실행 (이미 검증된 방법)
 ```bash
-# 기본 실행
-npx expo start
-
-# 터널 모드 (외부 접속 가능)
-npx expo start --tunnel
-
-# iOS 시뮬레이터
-npx expo run:ios
-
-# Android 에뮬레이터  
-npx expo run:android
+npx expo start --port 8082  # Metro 서버 시작
+npx expo run:ios --device "iPhone 16 Pro"  # iOS 시뮬레이터
 ```
 
-### 3. Android SDK 설치 (필요시)
+### 3. 개발 도구
 ```bash
-# Android Studio 설치 후
-export ANDROID_HOME=$HOME/Library/Android/sdk
-export PATH=$PATH:$ANDROID_HOME/emulator
-export PATH=$PATH:$ANDROID_HOME/tools
-export PATH=$PATH:$ANDROID_HOME/platform-tools
+npx tsc --noEmit  # TypeScript 타입 체크
 ```
 
-## 📂 프로젝트 구조 (현재)
+## 📂 현재 완성된 프로젝트 구조
 
 ```
-ChessNote2/
+ChessNote/
 ├── 📱 App.tsx (메인 앱)
 ├── 📋 src/
 │   ├── components/
-│   │   ├── ChessBoard/ (체스보드 + Square)
-│   │   ├── GameNotation/ (기보 표시)
-│   │   └── Controls/ (제어 버튼)
-│   ├── context/ (GameContext - 상태 관리)
-│   ├── utils/ (chessLogic - 체스 로직)
-│   └── types/ (TypeScript 타입)
-├── 🎨 assets/pieces/ (체스 기물 12개)
+│   │   ├── ChessBoard/ ✅ (체스보드 + Square, 턴 시스템 완성)
+│   │   ├── GameNotation/ ✅ (기보 표시, 색상 구분 완성)
+│   │   └── Controls/ ✅ (게임컨트롤, 클립보드 복사 완성)
+│   ├── context/ ✅ (GameContext 상태관리 완성)
+│   ├── utils/ ✅ (chessLogic 기본 구현 완성)
+│   └── types/ ✅ (TypeScript 타입 완성)
+├── 🎨 assets/pieces/ ✅ (체스 기물 12개 완성)
 ├── 📋 docs/ (프로젝트 문서들)
-└── ⚙️ 설정 파일들
+├── ios/ ✅ (네이티브 iOS 프로젝트 완성)
+├── android/ ✅ (네이티브 Android 프로젝트 준비)
+└── ⚙️ 설정 파일들 ✅
 ```
 
-## 🎯 성공 지표
+## 🎯 핵심 파일 수정 포인트
 
-### 단기 목표 (다음 세션)
-- [ ] 앱이 실제 디바이스/시뮬레이터에서 실행
-- [ ] 체스 기물 이동이 올바르게 작동
-- [ ] 기보가 실시간으로 업데이트
-- [ ] PGN 파일 공유 성공
+### 다음 세션에서 주로 수정할 파일들:
+1. **`src/utils/chessLogic.ts`** - 체스 규칙 고도화의 핵심
+2. **`src/components/ChessBoard/ChessBoard.tsx`** - 가능한 이동 표시, 애니메이션
+3. **`src/components/ChessBoard/Square.tsx`** - 시각적 효과 추가
+4. **`src/context/GameContext.tsx`** - 게임 완료 상태 관리
 
-### 중기 목표 (Phase 3-4)
-- [ ] 완전한 체스 규칙 적용
-- [ ] 체크/체크메이트 감지
-- [ ] 프로덕션 레벨 UI/UX
-- [ ] 앱스토어 배포 준비
+## 💡 개발 팁
 
-## 🔧 다음 세션 시작 명령어
+### 현재 구현된 것 vs 해야 할 것
+- ✅ **구현됨**: 기본 이동, 턴 시스템, PGN 생성, UI 완성
+- 🔄 **다음 단계**: 체스 규칙 검증, 특수 이동, 게임 완료 감지
 
-### 1. 프로젝트 재개
-```bash
-cd /Users/peter/Dev/ChessNote
+### 체스 규칙 구현 참고 자료
+- 이미 설치된 `chessops` 라이브러리 활용 권장
+- FEN 문자열로 보드 상태 관리 고려
+- UCI 표기법과 SAN 표기법 구분
+
+### 성능 최적화 고려사항
+- 기물 이동 시 전체 재렌더링 최소화
+- 메모이제이션 활용 (React.memo, useMemo)
+- 이미지 로딩 최적화
+
+## 🚀 즉시 시작 가능한 작업
+
+### 1. 가장 쉬운 시작: 가능한 이동 표시
+```typescript
+// ChessBoard.tsx에 추가할 기능
+const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
+
+// 기물 선택 시 가능한 이동 계산 후 표시
 ```
 
-### 2. 파일 제한 해결
-```bash
-ulimit -n 4096
+### 2. 체크 감지 시스템
+```typescript
+// chessLogic.ts에 추가할 함수
+export const isInCheck = (position: BoardPosition, color: PieceColor): boolean => {
+  // 킹의 위치 찾기 → 상대방 기물이 공격하는지 확인
+}
 ```
-
-### 3. 앱 실행 시도
-```bash
-# 가장 쉬운 방법
-npx expo start
-
-# 또는 직접 실행
-npx expo run:ios    # iOS
-npx expo run:android # Android
-```
-
-### 4. 개발 도구
-```bash
-# TypeScript 체크
-npx tsc --noEmit
-
-# 프로젝트 구조 확인  
-find . -name "*.tsx" -o -name "*.ts" | grep -v node_modules | sort
-```
-
-## 📝 참고 문서
-
-- `README.md`: 프로젝트 개요
-- `REQUIREMENTS.md`: 상세 요구사항  
-- `DEVELOPMENT_PLAN.md`: 개발 계획
-- `TECHNICAL_SPECS.md`: 기술 명세
-- `RUN_APP.md`: 실행 방법
-
-## 💡 다음 개발자를 위한 팁
-
-1. **먼저 앱 실행을 성공시키세요** - 모든 코드는 준비되어 있습니다
-2. **Expo Go 앱이 가장 빠른 테스트 방법입니다**
-3. **TypeScript 에러는 없으므로 런타임 이슈에 집중하세요**
-4. **체스 로직은 기본만 구현되어 있어 실제 규칙 적용이 필요합니다**
 
 ---
-**🎉 완성된 체스기보 앱이 실행되기를 기다리고 있습니다!**
+
+**🎉 완전히 동작하는 체스 앱이 GitHub에 준비되어 있습니다!**  
+**다음 세션에서는 체스 규칙 고도화로 진정한 체스 게임을 완성해보세요!**

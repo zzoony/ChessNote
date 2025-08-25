@@ -17,13 +17,25 @@ export interface ChessMove {
   fen: string; // 이동 후 위치
   timestamp: Date;
   promotion?: PieceType;
+  isCastle?: boolean;
+  isEnPassant?: boolean;
+  capturedPiece?: ChessPiece;
+}
+
+export interface CastlingRights {
+  whiteKingSide: boolean;
+  whiteQueenSide: boolean;
+  blackKingSide: boolean;
+  blackQueenSide: boolean;
 }
 
 export interface GameState {
   position: string; // FEN 형식
   moves: ChessMove[];
   currentPlayer: PieceColor;
-  gameStatus: 'playing' | 'checkmate' | 'stalemate' | 'draw';
+  gameStatus: 'playing' | 'check' | 'checkmate' | 'stalemate' | 'draw';
+  castlingRights: CastlingRights;
+  enPassantSquare: string | null;
   headers: {
     Event?: string;
     Site?: string;
