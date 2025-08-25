@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/peter/Dev/References/en-croissant/**)",
+      "Read(//Users/peter/Dev/References/en-croissant/**)",
+      "Read(//Users/peter/Dev/References/Tutorials/ChessBoard/**)",
+      "Read(//Users/peter/Dev/References/Tutorials/ChessBoard/**)",
+      "Bash(npx create-expo-app:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(ulimit:*)",
+      "Bash(npx expo:*)",
+      "Bash(brew install:*)",
+      "Bash(pod install:*)",
+      "Bash(echo $ANDROID_HOME)",
+      "Bash(curl:*)",
+      "Bash(xcode-select:*)"
+    ],
+    "deny": [],
+    "ask": [],
+    "additionalDirectories": [
+      "/Users/peter/Dev",
+      "/Users/peter/ChessNoteProject"
+    ]
+  }
+}

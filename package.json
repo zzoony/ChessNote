@@ -1,0 +1,34 @@
+{
+  "name": "chessnote-app",
+  "version": "1.0.0",
+  "description": "체스기보 작성 모바일 앱",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo/cli": "^0.24.20",
+    "@react-native-clipboard/clipboard": "^1.16.3",
+    "chessops": "^0.14.0",
+    "expo": "53.0.22",
+    "expo-file-system": "~18.1.11",
+    "expo-sharing": "~13.1.5",
+    "expo-status-bar": "~2.2.3",
+    "react": "19.0.0",
+    "react-native": "0.79.5",
+    "react-native-paper": "^5.12.3",
+    "react-native-vector-icons": "^10.0.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@react-native-community/cli": "^20.0.1",
+    "@types/react": "~19.0.10",
+    "@types/react-native": "~0.73.0",
+    "babel-plugin-module-resolver": "^5.0.2",
+    "typescript": "~5.8.3"
+  },
+  "private": true
+}
