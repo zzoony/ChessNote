@@ -67,7 +67,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
       const squares = [];
       for (let file = 0; file < 8; file++) {
         const square = String.fromCharCode(97 + file) + rank;
-        const isLight = (file + rank) % 2 === 1;
+        const isLight = (file + rank) % 2 === 0;
         const piece = currentPosition[square];
         const isSelected = selectedSquare === square;
         
@@ -134,8 +134,33 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
       ]}>
         {getStatusText()}
       </Text>
-      <View style={[styles.board, { width: BOARD_SIZE, height: BOARD_SIZE }]}>
-        {renderBoard()}
+      
+      {/* 체스보드와 좌표 컨테이너 */}
+      <View style={styles.boardContainer}>
+        {/* 세로 좌표 (1-8) */}
+        <View style={[styles.rankLabels, { height: BOARD_SIZE }]}>
+          {[8, 7, 6, 5, 4, 3, 2, 1].map((rank) => (
+            <View key={rank} style={[styles.rankLabel, { height: SQUARE_SIZE }]}>
+              <Text style={styles.coordinateText}>{rank}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* 체스보드 */}
+        <View style={styles.boardWrapper}>
+          <View style={[styles.board, { width: BOARD_SIZE, height: BOARD_SIZE }]}>
+            {renderBoard()}
+          </View>
+          
+          {/* 가로 좌표 (A-H) */}
+          <View style={styles.fileLabels}>
+            {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((file) => (
+              <View key={file} style={[styles.fileLabel, { width: SQUARE_SIZE }]}>
+                <Text style={styles.coordinateText}>{file}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
       </View>
       
       {/* 프로모션 다이얼로그 */}
@@ -173,9 +198,40 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 4,
   },
+  boardContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  rankLabels: {
+    marginRight: 4,
+    justifyContent: 'flex-start',
+  },
+  rankLabel: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 20,
+    flex: 1,
+  },
+  boardWrapper: {
+    alignItems: 'center',
+  },
   board: {
     borderWidth: 2,
     borderColor: '#8b4513',
+  },
+  fileLabels: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  fileLabel: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 20,
+  },
+  coordinateText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
   },
   row: {
     flexDirection: 'row',
