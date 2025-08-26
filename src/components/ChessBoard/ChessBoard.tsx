@@ -201,9 +201,11 @@ const styles = StyleSheet.create({
   boardContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    justifyContent: 'center',
+    marginLeft: -14,
   },
   rankLabels: {
-    marginRight: 4,
+    marginRight: 2,
     justifyContent: 'flex-start',
   },
   rankLabel: {

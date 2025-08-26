@@ -25,6 +25,7 @@ const GameScreen: React.FC = () => {
       <View style={styles.header}>
         <Text style={styles.title}>체스기보</Text>
         <Text style={styles.subtitle}>ChessNote</Text>
+        <Text style={styles.version}>v1.0.1</Text>
       </View>
       
       {/* 체스보드 */}
@@ -75,12 +76,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ffffff',
     opacity: 0.8,
+    marginBottom: 3,
+  },
+  version: {
+    fontSize: 12,
+    color: '#666666',
   },
   boardContainer: {
     flex: 2,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    width: '100%',
   },
   notationContainer: {
     flex: 1,
