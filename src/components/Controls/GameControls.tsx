@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Alert, ActionSheetIOS, Platform } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
-import Clipboard from '@react-native-clipboard/clipboard';
+import * as Clipboard from 'expo-clipboard';
 import { useGame } from '@/context/GameContext';
 import { generatePGN } from '@/utils/chessLogic';
 
@@ -42,7 +42,7 @@ const GameControls: React.FC = () => {
   const handleCopyToClipboard = async () => {
     try {
       const pgnContent = generatePGNFile(gameState);
-      Clipboard.setString(pgnContent);
+      await Clipboard.setStringAsync(pgnContent);
       Alert.alert('복사 완료', 'PGN 기보가 클립보드에 복사되었습니다.');
     } catch (error) {
       console.error('클립보드 복사 오류:', error);

@@ -77,6 +77,8 @@ src/
 ## 🚀 실행 환경
 
 ### 검증된 실행 방법
+
+#### iOS 시뮬레이터
 ```bash
 # 프로젝트 위치
 cd /Users/peter/Dev/ChessNote
@@ -91,10 +93,29 @@ npx expo run:ios --device "iPhone 16 Pro"
 npx tsc --noEmit
 ```
 
+#### Android 에뮬레이터
+```bash
+# 환경 변수 설정 (필수)
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools
+
+# 에뮬레이터 시작
+emulator -avd Medium_Phone_API_36.0 &
+
+# 개발 서버 실행 (포트 8081이 사용 중이면 8082 사용)
+npx expo start --port 8082 --android
+
+# 또는 직접 빌드 (현재 NDK 이슈로 권장하지 않음)
+# npx expo run:android
+```
+
 ### 알려진 해결책
 - **Metro 연결 문제**: `npx expo start --clear`
 - **패키지 이슈**: `npm install` 재실행
 - **iOS 빌드 문제**: `cd ios && pod install`
+- **Android NDK 문제**: 직접 빌드 대신 개발 서버(`npx expo start`) 사용 권장
+- **포트 충돌**: 8081 사용 중이면 8082 사용
+- **에뮬레이터 중복 실행**: `adb devices`로 확인 후 기존 프로세스 종료
 
 ## 📊 현재 완성된 기능 상태
 
