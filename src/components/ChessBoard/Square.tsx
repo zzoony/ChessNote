@@ -1,5 +1,5 @@
-import React from 'react';
-import { TouchableOpacity, StyleSheet, Image } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { TouchableOpacity, StyleSheet, Image, View, Animated } from 'react-native';
 import { ChessPiece } from '@/types';
 
 interface SquareProps {
@@ -8,7 +8,11 @@ interface SquareProps {
   isLight: boolean;
   size: number;
   isSelected?: boolean;
+  isPossibleMove?: boolean;
+  isLastMoveSquare?: boolean;
   onPress: (square: string) => void;
+  animatingPiece?: ChessPiece | null; // 애니메이션 중인 기물
+  isAnimationTarget?: boolean; // 애니메이션 목적지인지
 }
 
 const Square: React.FC<SquareProps> = ({ 
@@ -17,8 +21,28 @@ const Square: React.FC<SquareProps> = ({
   isLight, 
   size,
   isSelected = false,
-  onPress 
+  isPossibleMove = false,
+  isLastMoveSquare = false,
+  onPress,
+  animatingPiece = null,
+  isAnimationTarget = false
 }) => {
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // 캡처 애니메이션 효과
+  useEffect(() => {
+    if (isAnimationTarget && piece && animatingPiece) {
+      // 기물이 캡처되는 경우 빠르게 페이드 아웃
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      // 애니메이션이 끝나면 다시 보이게 하기
+      fadeAnim.setValue(1);
+    }
+  }, [isAnimationTarget, piece, animatingPiece, fadeAnim]);
   const getPieceImage = () => {
     if (!piece) return null;
     
@@ -45,6 +69,15 @@ const Square: React.FC<SquareProps> = ({
     return pieceImages[imageName];
   };
 
+  // 배경색 결정
+  const getBackgroundColor = () => {
+    if (isSelected) return '#ffff00'; // 선택된 기물 (노란색)
+    if (isPossibleMove && piece) return '#90ee90'; // 기물이 있는 칸(캐처 가능) (연두색)
+    if (isPossibleMove) return isLight ? '#f0f5ff' : '#e0e5ee'; // 기물이 없는 칸
+    if (isLastMoveSquare) return '#ffcc80'; // 마지막 이동 칸 (연한 오렌지)
+    return isLight ? '#f0d9b5' : '#b58863'; // 기본 칸 색상
+  };
+
   return (
     <TouchableOpacity
       style={[
@@ -52,17 +85,27 @@ const Square: React.FC<SquareProps> = ({
         {
           width: size,
           height: size,
-          backgroundColor: isSelected ? '#ffff00' : (isLight ? '#f0d9b5' : '#b58863'),
+          backgroundColor: getBackgroundColor(),
         },
       ]}
       onPress={() => onPress(square)}
     >
       {piece && (
-        <Image
-          source={getPieceImage()}
-          style={[styles.piece, { width: size * 0.8, height: size * 0.8 }]}
-          resizeMode="contain"
-        />
+        <Animated.View style={{ opacity: fadeAnim }}>
+          <Image
+            source={getPieceImage()}
+            style={[styles.piece, { width: size * 0.8, height: size * 0.8 }]}
+            resizeMode="contain"
+          />
+        </Animated.View>
+      )}
+      {/* 가능한 이동 위치 점 표시 (기물이 없는 칸만) */}
+      {isPossibleMove && !piece && (
+        <View style={[styles.possibleMoveDot, { 
+          width: size * 0.3, 
+          height: size * 0.3, 
+          borderRadius: size * 0.15 
+        }]} />
       )}
     </TouchableOpacity>
   );
@@ -76,6 +119,10 @@ const styles = StyleSheet.create({
   },
   piece: {
     // 기본 스타일
+  },
+  possibleMoveDot: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    position: 'absolute',
   },
 });
 

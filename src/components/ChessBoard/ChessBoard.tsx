@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import Square from './Square';
 import PromotionDialog from './PromotionDialog';
+import AnimatedPiece from './AnimatedPiece';
 import { ChessPiece, PieceColor, BoardPosition } from '@/types';
 import { useGame } from '@/context/GameContext';
 
@@ -18,17 +19,27 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
   const { 
     gameState, 
     position: contextPosition, 
+    selectedSquare,
+    possibleMoves,
+    lastMove,
     makeMove,
+    setSelectedSquare,
     isWhiteInCheck,
     isBlackInCheck,
     isGameOver,
     gameResult,
-    pendingPromotion
+    pendingPromotion,
+    animationState,
+    onAnimationComplete
   } = useGame();
   const currentPosition = position || contextPosition;
-  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
 
   const handleSquarePress = (square: string) => {
+    // 애니메이션 중에는 사용자 입력 차단
+    if (animationState.isAnimating) {
+      return;
+    }
+    
     if (selectedSquare === null) {
       // 첫 번째 클릭 - 기물 선택
       const piece = currentPosition[square];
@@ -39,22 +50,27 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
         }
       }
     } else {
-      // 두 번째 클릭 - 이동
+      // 두 번째 클릭 - 이동 또는 새로운 기물 선택
       if (selectedSquare === square) {
         // 같은 칸을 다시 클릭하면 선택 해제
         setSelectedSquare(null);
       } else {
-        // 이동 시도
-        const selectedPiece = currentPosition[selectedSquare];
-        if (selectedPiece && selectedPiece.color === gameState.currentPlayer) {
-          if (onMove) {
-            onMove(selectedSquare, square);
-          } else {
-            // GameContext를 사용한 이동
-            makeMove(selectedSquare, square);
+        const targetPiece = currentPosition[square];
+        // 자신의 기물을 클릭한 경우 새로운 선택
+        if (targetPiece && targetPiece.color === gameState.currentPlayer) {
+          setSelectedSquare(square);
+        } else {
+          // 이동 시도
+          const selectedPiece = currentPosition[selectedSquare];
+          if (selectedPiece && selectedPiece.color === gameState.currentPlayer) {
+            if (onMove) {
+              onMove(selectedSquare, square);
+            } else {
+              // GameContext를 사용한 이동
+              makeMove(selectedSquare, square);
+            }
           }
         }
-        setSelectedSquare(null);
       }
     }
   };
@@ -70,16 +86,28 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
         const isLight = (file + rank) % 2 === 0;
         const piece = currentPosition[square];
         const isSelected = selectedSquare === square;
+        const isPossibleMove = possibleMoves.includes(square);
+        const isLastMoveSquare = lastMove ? (square === lastMove.from || square === lastMove.to) : false;
+        
+        // 애니메이션 중인 기물 처리
+        const isAnimationSource = animationState.animatingMoves.some(move => move.from === square);
+        const isAnimationTarget = animationState.animatingMoves.some(move => move.to === square);
+        const animatingPiece = animationState.animatingMoves.find(move => move.to === square)?.piece || null;
+        const displayPiece = isAnimationSource ? null : piece; // 애니메이션 시작 위치에서는 기물 숨김
         
         squares.push(
           <Square
             key={square}
             square={square}
-            piece={piece}
+            piece={displayPiece}
             isLight={isLight}
             size={SQUARE_SIZE}
             isSelected={isSelected}
+            isPossibleMove={isPossibleMove}
+            isLastMoveSquare={isLastMoveSquare}
             onPress={handleSquarePress}
+            animatingPiece={animatingPiece}
+            isAnimationTarget={isAnimationTarget}
           />
         );
       }
@@ -111,7 +139,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
       return '흑색 킹이 체크 상태입니다!';
     }
     
-    return gameState.currentPlayer === 'white' ? '백색 차례' : '흑색 차례';
+    return gameState.currentPlayer === 'white' ? '백 차례' : '흑 차례';
   };
 
   // 프로모션 처리
@@ -127,14 +155,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={[
-        styles.turnIndicator,
-        (isWhiteInCheck || isBlackInCheck) && !isGameOver && styles.checkWarning,
-        isGameOver && styles.gameOver
-      ]}>
-        {getStatusText()}
-      </Text>
-      
       {/* 체스보드와 좌표 컨테이너 */}
       <View style={styles.boardContainer}>
         {/* 세로 좌표 (1-8) */}
@@ -150,6 +170,13 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
         <View style={styles.boardWrapper}>
           <View style={[styles.board, { width: BOARD_SIZE, height: BOARD_SIZE }]}>
             {renderBoard()}
+            
+            {/* 애니메이션 레이어 - 임시 비활성화 */}
+            {false && animationState && animationState.isAnimating && animationState.animatingMoves && animationState.animatingMoves.map((move, index) => (
+              <View key={`${move.from}-${move.to}`}>
+                {/* AnimatedPiece 컴포넌트 임시 비활성화 */}
+              </View>
+            ))}
           </View>
           
           {/* 가로 좌표 (A-H) */}

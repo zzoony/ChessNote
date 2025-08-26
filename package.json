@@ -1,6 +1,6 @@
 {
   "name": "chessnote-app",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "체스기보 작성 모바일 앱",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
@@ -15,6 +15,7 @@
     "chessops": "^0.14.0",
     "expo": "53.0.22",
     "expo-file-system": "~18.1.11",
+    "expo-keep-awake": "^14.1.4",
     "expo-sharing": "~13.1.5",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",

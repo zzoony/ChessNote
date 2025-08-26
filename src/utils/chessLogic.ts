@@ -523,6 +523,31 @@ export const getCurrentTurn = (moveCount: number): PieceColor => {
   return moveCount % 2 === 0 ? 'white' : 'black';
 };
 
+// 특정 기물의 가능한 모든 이동 위치 계산
+export const getPossibleMoves = (
+  square: string,
+  position: BoardPosition,
+  castlingRights?: CastlingRights,
+  enPassantSquare?: string | null
+): string[] => {
+  const piece = position[square];
+  if (!piece) return [];
+  
+  const possibleMoves: string[] = [];
+  
+  // 모든 칸에 대해 이동 가능성 확인
+  for (let file = 0; file < 8; file++) {
+    for (let rank = 0; rank < 8; rank++) {
+      const toSquare = coordinateToSquare(file, rank);
+      if (isValidMove(square, toSquare, position, true, castlingRights, enPassantSquare)) {
+        possibleMoves.push(toSquare);
+      }
+    }
+  }
+  
+  return possibleMoves;
+};
+
 // PGN 형식 문자열 생성
 export const generatePGN = (moves: ChessMove[]): string => {
   let pgn = '';

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { GameState, ChessMove, BoardPosition } from '@/types';
+import { GameState, ChessMove, BoardPosition, ChessPiece } from '@/types';
 import { 
   getInitialPosition, 
   generateSAN, 
@@ -10,7 +10,8 @@ import {
   isStalemate,
   executeSpecialMove,
   needsPromotion,
-  squareToCoordinate
+  squareToCoordinate,
+  getPossibleMoves
 } from '@/utils/chessLogic';
 
 // 액션 타입들
@@ -18,21 +19,52 @@ type GameAction =
   | { type: 'MAKE_MOVE'; payload: { from: string; to: string; promotion?: 'queen' | 'rook' | 'bishop' | 'knight' } }
   | { type: 'NEW_GAME' }
   | { type: 'UNDO_MOVE' }
-  | { type: 'SET_POSITION'; payload: string };
+  | { type: 'SET_POSITION'; payload: string }
+  | { type: 'START_MOVE_ANIMATION'; payload: { moves: AnimatingMove[] } }
+  | { type: 'ANIMATION_PIECE_COMPLETE' }
+  | { type: 'COMPLETE_MOVE_ANIMATION' }
+  | { type: 'SET_SELECTED_SQUARE'; payload: string | null };
+
+// 애니메이션 상태 인터페이스
+interface AnimatingMove {
+  from: string;
+  to: string;
+  piece: ChessPiece;
+}
+
+interface AnimationState {
+  isAnimating: boolean;
+  animatingMoves: AnimatingMove[]; // 캐슬링 등 여러 기물이 동시에 이동
+  completedAnimations: number;
+}
 
 // Context 타입
 interface GameContextType {
   gameState: GameState;
   position: BoardPosition;
+  selectedSquare: string | null;
+  possibleMoves: string[];
+  lastMove: { from: string; to: string } | null;
+  capturedPieces: { white: ChessPiece[]; black: ChessPiece[] };
   isWhiteInCheck: boolean;
   isBlackInCheck: boolean;
   isGameOver: boolean;
   gameResult: string | null;
   pendingPromotion: { from: string; to: string } | null;
+  animationState: AnimationState;
   makeMove: (from: string, to: string, promotion?: 'queen' | 'rook' | 'bishop' | 'knight') => boolean;
+  setSelectedSquare: (square: string | null) => void;
+  onAnimationComplete: () => void;
   newGame: () => void;
   undoMove: () => void;
 }
+
+// 초기 애니메이션 상태
+const initialAnimationState: AnimationState = {
+  isAnimating: false,
+  animatingMoves: [],
+  completedAnimations: 0,
+};
 
 // 초기 상태
 const initialGameState: GameState = {
@@ -55,9 +87,64 @@ const initialGameState: GameState = {
   },
 };
 
+// 추가 상태 인터페이스
+interface ExtendedGameState extends GameState {
+  selectedSquare: string | null;
+  animationState: AnimationState;
+}
+
+// 초기 확장 상태
+const initialExtendedGameState: ExtendedGameState = {
+  ...initialGameState,
+  selectedSquare: null,
+  animationState: {
+    isAnimating: false,
+    animatingMoves: [],
+    completedAnimations: 0,
+  },
+};
+
 // Reducer 함수
-const gameReducer = (state: GameState, action: GameAction): GameState => {
+const gameReducer = (state: ExtendedGameState, action: GameAction): ExtendedGameState => {
   switch (action.type) {
+    case 'START_MOVE_ANIMATION': {
+      const { moves } = action.payload;
+      return {
+        ...state,
+        animationState: {
+          isAnimating: true,
+          animatingMoves: moves,
+          completedAnimations: 0,
+        },
+        selectedSquare: null, // 애니메이션 시작 시 선택 해제
+      };
+    }
+    
+    case 'ANIMATION_PIECE_COMPLETE': {
+      const newCompleted = state.animationState.completedAnimations + 1;
+      const allCompleted = newCompleted >= state.animationState.animatingMoves.length;
+      
+      return {
+        ...state,
+        animationState: {
+          ...state.animationState,
+          completedAnimations: newCompleted,
+          isAnimating: !allCompleted,
+        },
+      };
+    }
+    
+    case 'COMPLETE_MOVE_ANIMATION': {
+      return {
+        ...state,
+        animationState: {
+          isAnimating: false,
+          animatingMoves: [],
+          completedAnimations: 0,
+        },
+      };
+    }
+    
     case 'MAKE_MOVE': {
       const { from, to, promotion } = action.payload;
       
@@ -167,9 +254,9 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
     
     case 'NEW_GAME':
       return {
-        ...initialGameState,
+        ...initialExtendedGameState,
         headers: {
-          ...initialGameState.headers,
+          ...initialExtendedGameState.headers,
           Date: new Date().toISOString().split('T')[0],
         },
       };
@@ -182,6 +269,13 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         ...state,
         moves: newMoves,
         currentPlayer: getCurrentTurn(newMoves.length),
+        selectedSquare: null, // 실행취소 시 선택 해제
+      };
+    
+    case 'SET_SELECTED_SQUARE':
+      return {
+        ...state,
+        selectedSquare: action.payload,
       };
     
     default:
@@ -239,22 +333,45 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 // Provider 컴포넌트
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
+  const [gameState, dispatch] = useReducer(gameReducer, initialExtendedGameState);
+  const [animationState, setAnimationState] = React.useState<AnimationState>(initialAnimationState);
   const [pendingPromotion, setPendingPromotion] = React.useState<{ from: string; to: string } | null>(null);
   
   const makeMove = (from: string, to: string, promotion?: 'queen' | 'rook' | 'bishop' | 'knight'): boolean => {
     const currentPosition = getCurrentPosition(gameState.moves);
     const piece = currentPosition[from];
     
+    if (!piece) return false;
+    
     // 프로모션이 필요한 경우
-    if (piece && needsPromotion(to, piece) && !promotion) {
+    if (needsPromotion(to, piece) && !promotion) {
       setPendingPromotion({ from, to });
       return false; // 프로모션 선택 대기
     }
     
     setPendingPromotion(null);
+    
+    // 애니메이션 없이 바로 이동 처리
     dispatch({ type: 'MAKE_MOVE', payload: { from, to, promotion } });
+    
+    // 이동 후 선택 해제
+    dispatch({ type: 'SET_SELECTED_SQUARE', payload: null });
+    
     return true;
+  };
+  
+  const onAnimationComplete = () => {
+    setAnimationState(prev => {
+      const newCompletedCount = prev.completedAnimations + 1;
+      if (newCompletedCount >= prev.animatingMoves.length) {
+        // 모든 애니메이션 완료
+        return initialAnimationState;
+      }
+      return {
+        ...prev,
+        completedAnimations: newCompletedCount,
+      };
+    });
   };
   
   const newGame = () => {
@@ -267,8 +384,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'UNDO_MOVE' });
   };
   
+  const setSelectedSquare = (square: string | null) => {
+    dispatch({ type: 'SET_SELECTED_SQUARE', payload: square });
+  };
+
   // 현재 보드 위치 계산
   const position = getCurrentPosition(gameState.moves);
+  
+  // 선택된 기물의 가능한 이동 계산
+  const possibleMoves = React.useMemo(() => {
+    if (!gameState.selectedSquare) return [];
+    return getPossibleMoves(
+      gameState.selectedSquare,
+      position,
+      gameState.castlingRights,
+      gameState.enPassantSquare
+    );
+  }, [gameState.selectedSquare, position, gameState.castlingRights, gameState.enPassantSquare]);
   
   // 체크 상태 계산
   const isWhiteInCheck = isInCheck(position, 'white');
@@ -278,15 +410,47 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const isGameOver = gameState.gameStatus === 'checkmate' || gameState.gameStatus === 'stalemate';
   const gameResult = isGameOver ? gameState.headers.Result : null;
   
+  // 마지막 이동 계산
+  const lastMove = React.useMemo(() => {
+    if (gameState.moves.length === 0) return null;
+    const lastMoveData = gameState.moves[gameState.moves.length - 1];
+    return { from: lastMoveData.from, to: lastMoveData.to };
+  }, [gameState.moves]);
+
+  // 캡처된 기물 계산
+  const capturedPieces = React.useMemo(() => {
+    const white: ChessPiece[] = [];
+    const black: ChessPiece[] = [];
+    
+    gameState.moves.forEach(move => {
+      if (move.capturedPiece) {
+        if (move.capturedPiece.color === 'white') {
+          white.push(move.capturedPiece);
+        } else {
+          black.push(move.capturedPiece);
+        }
+      }
+    });
+    
+    return { white, black };
+  }, [gameState.moves]);
+  
   const value: GameContextType = {
     gameState,
     position,
+    selectedSquare: gameState.selectedSquare,
+    possibleMoves,
+    lastMove,
+    capturedPieces,
     isWhiteInCheck,
     isBlackInCheck,
     isGameOver,
     gameResult,
     pendingPromotion,
+    animationState,
     makeMove,
+    setSelectedSquare,
+    onAnimationComplete,
     newGame,
     undoMove,
   };

@@ -16,7 +16,8 @@
       "Bash(curl:*)",
       "Bash(xcode-select:*)",
       "Bash(npx tsc:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": [],
