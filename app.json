@@ -18,7 +18,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.chessnote.app",
       "jsEngine": "jsc",
-      "buildNumber": "1.0.5"
+      "buildNumber": "1.0.5",
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true,
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,6 +33,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8000d317-5237-46e6-a8c7-7209f4ae63ad"
+      }
+    },
+    "owner": "zzoonynael"
   }
 }

@@ -1,24 +1,26 @@
 {
   "cli": {
-    "version": ">= 0.54.0"
+    "version": ">= 0.54.0",
+    "appVersionSource": "local"
   },
   "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "resourceClass": "default"
+      }
+    },
     "preview": {
       "ios": {
-        "distribution": "internal"
-      },
-      "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
+        "distribution": "internal",
+        "resourceClass": "default"
       }
     },
     "production": {
       "ios": {
-        "distribution": "internal"
-      },
-      "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
+        "distribution": "store",
+        "resourceClass": "default"
       }
     }
   },
