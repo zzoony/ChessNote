@@ -72,8 +72,6 @@ const Square: React.FC<SquareProps> = ({
   // 배경색 결정
   const getBackgroundColor = () => {
     if (isSelected) return '#ffff00'; // 선택된 기물 (노란색)
-    if (isPossibleMove && piece) return '#90ee90'; // 기물이 있는 칸(캐처 가능) (연두색)
-    if (isPossibleMove) return isLight ? '#f0f5ff' : '#e0e5ee'; // 기물이 없는 칸
     if (isLastMoveSquare) return '#ffcc80'; // 마지막 이동 칸 (연한 오렌지)
     return isLight ? '#f0d9b5' : '#b58863'; // 기본 칸 색상
   };
@@ -99,12 +97,21 @@ const Square: React.FC<SquareProps> = ({
           />
         </Animated.View>
       )}
-      {/* 가능한 이동 위치 점 표시 (기물이 없는 칸만) */}
+      {/* 가능한 이동 위치 점 표시 (기물이 없는 칸) */}
       {isPossibleMove && !piece && (
         <View style={[styles.possibleMoveDot, { 
           width: size * 0.3, 
           height: size * 0.3, 
           borderRadius: size * 0.15 
+        }]} />
+      )}
+      {/* 캡처 가능한 기물 표시 (기물이 있는 칸) */}
+      {isPossibleMove && piece && (
+        <View style={[styles.captureIndicator, { 
+          width: size - 4, 
+          height: size - 4,
+          borderWidth: 3,
+          borderRadius: size * 0.1
         }]} />
       )}
     </TouchableOpacity>
@@ -122,6 +129,10 @@ const styles = StyleSheet.create({
   },
   possibleMoveDot: {
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    position: 'absolute',
+  },
+  captureIndicator: {
+    borderColor: 'rgba(255, 0, 0, 0.5)',
     position: 'absolute',
   },
 });
