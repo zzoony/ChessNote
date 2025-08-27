@@ -5,21 +5,23 @@
   },
   "build": {
     "development": {
-      "developmentClient": true,
+      "developmentClient": false,
       "distribution": "internal",
       "ios": {
         "resourceClass": "default"
       }
     },
     "preview": {
+      "developmentClient": false,
+      "distribution": "internal",
       "ios": {
-        "distribution": "internal",
         "resourceClass": "default"
       }
     },
     "production": {
+      "developmentClient": false,
+      "distribution": "store",
       "ios": {
-        "distribution": "store",
         "resourceClass": "default"
       }
     }

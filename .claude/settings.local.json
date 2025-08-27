@@ -17,7 +17,14 @@
       "Bash(xcode-select:*)",
       "Bash(npx tsc:*)",
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(pkill:*)",
+      "Bash(git log:*)",
+      "Bash(npx eas build:*)",
+      "Bash(npx eas init:*)",
+      "Bash(open:*)",
+      "Bash(xcodebuild clean:*)",
+      "Read(/Users/peter/Downloads/**)"
     ],
     "deny": [],
     "ask": [],
