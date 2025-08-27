@@ -171,11 +171,18 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
           <View style={[styles.board, { width: BOARD_SIZE, height: BOARD_SIZE }]}>
             {renderBoard()}
             
-            {/* 애니메이션 레이어 - 임시 비활성화 */}
-            {false && animationState && animationState.isAnimating && animationState.animatingMoves && animationState.animatingMoves.map((move, index) => (
-              <View key={`${move.from}-${move.to}`}>
-                {/* AnimatedPiece 컴포넌트 임시 비활성화 */}
-              </View>
+            {/* 애니메이션 레이어 */}
+            {animationState && animationState.isAnimating && animationState.animatingMoves.map((move, index) => (
+              <AnimatedPiece
+                key={`${move.from}-${move.to}-${index}`}
+                piece={move.piece}
+                fromSquare={move.from}
+                toSquare={move.to}
+                boardSize={BOARD_SIZE}
+                squareSize={SQUARE_SIZE}
+                onAnimationComplete={onAnimationComplete}
+                delay={index * 100} // 여러 기물이 이동할 때 순서대로 애니메이션
+              />
             ))}
           </View>
           

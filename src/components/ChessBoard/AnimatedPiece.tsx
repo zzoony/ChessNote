@@ -12,14 +12,15 @@ interface AnimatedPieceProps {
   delay?: number; // 캐슬링 등에서 여러 기물이 동시에 이동할 때 지연 시간
 }
 
-// 체스 좌표를 픽셀 위치로 변환
+// 체스 좌표를 픽셀 위치로 변환 (칸의 중앙 기준)
 const squareToPosition = (square: string, squareSize: number) => {
   const file = square.charCodeAt(0) - 97; // a=0, b=1, ..., h=7
   const rank = parseInt(square[1]) - 1; // 1=0, 2=1, ..., 8=7
   
+  // Square 컴포넌트와 정확히 매칭: 칸 좌상단 + 기물 크기 80%의 10% 여백 보상
   return {
-    x: file * squareSize,
-    y: (7 - rank) * squareSize, // 체스보드는 8랭크가 맨 위
+    x: file * squareSize + (squareSize - squareSize * 0.8) / 2, // 칸 중앙 정렬
+    y: (7 - rank) * squareSize + (squareSize - squareSize * 0.8) / 2, // 체스보드는 8랭크가 맨 위
   };
 };
 
@@ -72,37 +73,37 @@ const AnimatedPiece: React.FC<AnimatedPieceProps> = ({
     // 지연 시간 후 애니메이션 시작
     const timer = setTimeout(() => {
       Animated.parallel([
-        // 위치 이동 애니메이션 - 이동 거리에 따라 속도 조절
+        // 위치 이동 애니메이션 - 이동 거리에 따라 속도 조절 (20% 더 빠르게)
         Animated.timing(positionAnim, {
           toValue: toPosition,
-          duration: Math.max(300, Math.min(500, 
-            Math.sqrt(Math.pow(toPosition.x - fromPosition.x, 2) + Math.pow(toPosition.y - fromPosition.y, 2)) * 2
+          duration: Math.max(200, Math.min(320, 
+            Math.sqrt(Math.pow(toPosition.x - fromPosition.x, 2) + Math.pow(toPosition.y - fromPosition.y, 2)) * 1.44
           )),
           useNativeDriver: true,
         }),
-        // 그림자 효과 (이동 시 나타나고 끝에서 사라짐)
+        // 그림자 효과 (이동 시 나타나고 끝에서 사라짐, 20% 빠르게)
         Animated.sequence([
           Animated.timing(shadowOpacityAnim, {
             toValue: 0.3,
-            duration: 100,
+            duration: 80,
             useNativeDriver: true,
           }),
           Animated.timing(shadowOpacityAnim, {
             toValue: 0,
-            duration: 200,
+            duration: 160,
             useNativeDriver: true,
           }),
         ]),
-        // 살짝 커졌다가 작아지는 효과
+        // 살짝 커졌다가 작아지는 효과 (20% 빠르게)
         Animated.sequence([
           Animated.timing(scaleAnim, {
             toValue: 1.1,
-            duration: 100,
+            duration: 80,
             useNativeDriver: true,
           }),
           Animated.timing(scaleAnim, {
             toValue: 1,
-            duration: 300,
+            duration: 240,
             useNativeDriver: true,
           }),
         ]),
@@ -122,6 +123,8 @@ const AnimatedPiece: React.FC<AnimatedPieceProps> = ({
         style={[
           styles.shadowPiece,
           {
+            width: squareSize * 0.8,
+            height: squareSize * 0.8,
             transform: [
               { translateX: positionAnim.x },
               { translateY: positionAnim.y },
@@ -144,6 +147,8 @@ const AnimatedPiece: React.FC<AnimatedPieceProps> = ({
         style={[
           styles.animatedPiece,
           {
+            width: squareSize * 0.8,
+            height: squareSize * 0.8,
             transform: [
               { translateX: positionAnim.x },
               { translateY: positionAnim.y },
@@ -178,6 +183,7 @@ const styles = StyleSheet.create({
     zIndex: 999, // 실제 기물보다 아래
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', // 그림자 효과 강화
   },
   piece: {
     // 기본 스타일

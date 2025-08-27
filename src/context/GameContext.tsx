@@ -351,11 +351,45 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     setPendingPromotion(null);
     
-    // 애니메이션 없이 바로 이동 처리
-    dispatch({ type: 'MAKE_MOVE', payload: { from, to, promotion } });
+    // 애니메이션할 기물들 준비
+    const animatingMoves: AnimatingMove[] = [];
     
-    // 이동 후 선택 해제
-    dispatch({ type: 'SET_SELECTED_SQUARE', payload: null });
+    // 기본 이동
+    animatingMoves.push({ from, to, piece });
+    
+    // 캐슬링인지 확인
+    const isCastling = piece.type === 'king' && Math.abs(squareToCoordinate(to)[0] - squareToCoordinate(from)[0]) === 2;
+    if (isCastling) {
+      const side = squareToCoordinate(to)[0] > squareToCoordinate(from)[0] ? 'king' : 'queen';
+      const rank = piece.color === 'white' ? '1' : '8';
+      const rookFromSquare = side === 'king' ? 'h' + rank : 'a' + rank;
+      const rookToSquare = side === 'king' ? 'f' + rank : 'd' + rank;
+      const rook = currentPosition[rookFromSquare];
+      
+      if (rook) {
+        animatingMoves.push({ from: rookFromSquare, to: rookToSquare, piece: rook });
+      }
+    }
+    
+    // 애니메이션 시작
+    setAnimationState({
+      isAnimating: true,
+      animatingMoves,
+      completedAnimations: 0,
+    });
+    
+    // 애니메이션 완료 후 이동 처리
+    const animationDuration = 320; // AnimatedPiece의 최대 지에 시간과 맞춤 (20% 빠르게 조정)
+    
+    // 비동기로 처리하여 useInsertionEffect 경고 방지
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        dispatch({ type: 'MAKE_MOVE', payload: { from, to, promotion } });
+        
+        // 애니메이션 상태 리셋
+        setAnimationState(initialAnimationState);
+      }, animationDuration + 50);
+    });
     
     return true;
   };
@@ -364,8 +398,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAnimationState(prev => {
       const newCompletedCount = prev.completedAnimations + 1;
       if (newCompletedCount >= prev.animatingMoves.length) {
-        // 모든 애니메이션 완료
-        return initialAnimationState;
+        // 모든 애니메이션 완료 - 상태는 setTimeout에서 처리
+        return prev;
       }
       return {
         ...prev,
