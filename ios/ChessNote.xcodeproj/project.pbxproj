@@ -8,25 +8,25 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		147E25C10480970CF8936C5B /* libPods-ChessNote.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BB0CBA556145C51DC29D99D2 /* libPods-ChessNote.a */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		47DA58480705C26376753F39 /* libPods-ChessNote.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 630DB337D08E85DC26351725 /* libPods-ChessNote.a */; };
-		53E86CCB8B3ACCE46C676E1A /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C2C1A5A828D67EB6E8A2052 /* ExpoModulesProvider.swift */; };
-		74B804E4FB451EC09EF61AF4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BD45EDEE2F56CB38246A3EB2 /* PrivacyInfo.xcprivacy */; };
+		95710A4EA8C98ACA1AD2A449 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09C19AD0F1E4649AF3542520 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		F9EEB89E7A63C36E54A51F82 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BAFF8316AAFB5FFFF8F22091 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		09C19AD0F1E4649AF3542520 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ChessNote/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* ChessNote.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChessNote.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ChessNote/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ChessNote/Info.plist; sourceTree = "<group>"; };
-		1C2C1A5A828D67EB6E8A2052 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-ChessNote/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		630DB337D08E85DC26351725 /* libPods-ChessNote.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ChessNote.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		68C26D0994524A97A5B4FD6B /* Pods-ChessNote.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChessNote.release.xcconfig"; path = "Target Support Files/Pods-ChessNote/Pods-ChessNote.release.xcconfig"; sourceTree = "<group>"; };
+		831723A3D08D31E0D46E585E /* Pods-ChessNote.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChessNote.debug.xcconfig"; path = "Target Support Files/Pods-ChessNote/Pods-ChessNote.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = ChessNote/SplashScreen.storyboard; sourceTree = "<group>"; };
-		AA6C92D5B2AB3E9ACC014A38 /* Pods-ChessNote.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChessNote.debug.xcconfig"; path = "Target Support Files/Pods-ChessNote/Pods-ChessNote.debug.xcconfig"; sourceTree = "<group>"; };
+		BAFF8316AAFB5FFFF8F22091 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = ChessNote/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		BB0CBA556145C51DC29D99D2 /* libPods-ChessNote.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ChessNote.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		BD45EDEE2F56CB38246A3EB2 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = ChessNote/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		C0D5009799C4C6F4DB04416A /* Pods-ChessNote.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChessNote.release.xcconfig"; path = "Target Support Files/Pods-ChessNote/Pods-ChessNote.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = ChessNote/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* ChessNote-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ChessNote-Bridging-Header.h"; path = "ChessNote/ChessNote-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -37,21 +37,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				47DA58480705C26376753F39 /* libPods-ChessNote.a in Frameworks */,
+				147E25C10480970CF8936C5B /* libPods-ChessNote.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0234C2F7CA80DBC0B5272794 /* ChessNote */ = {
-			isa = PBXGroup;
-			children = (
-				1C2C1A5A828D67EB6E8A2052 /* ExpoModulesProvider.swift */,
-			);
-			name = ChessNote;
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* ChessNote */ = {
 			isa = PBXGroup;
 			children = (
@@ -61,7 +53,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				BD45EDEE2F56CB38246A3EB2 /* PrivacyInfo.xcprivacy */,
+				BAFF8316AAFB5FFFF8F22091 /* PrivacyInfo.xcprivacy */,
 			);
 			name = ChessNote;
 			sourceTree = "<group>";
@@ -70,27 +62,26 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				630DB337D08E85DC26351725 /* libPods-ChessNote.a */,
+				BB0CBA556145C51DC29D99D2 /* libPods-ChessNote.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		5DC531E63A198D9E1CD5E927 /* Pods */ = {
+		3E7AF03EF8570DB8A5A0FCB1 /* ChessNote */ = {
 			isa = PBXGroup;
 			children = (
-				AA6C92D5B2AB3E9ACC014A38 /* Pods-ChessNote.debug.xcconfig */,
-				68C26D0994524A97A5B4FD6B /* Pods-ChessNote.release.xcconfig */,
+				09C19AD0F1E4649AF3542520 /* ExpoModulesProvider.swift */,
 			);
-			name = Pods;
-			path = Pods;
+			name = ChessNote;
 			sourceTree = "<group>";
 		};
-		749FD851C8DDEE00EA3B030C /* ExpoModulesProviders */ = {
+		730B8C825727D98FDB124BBF /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				0234C2F7CA80DBC0B5272794 /* ChessNote */,
+				831723A3D08D31E0D46E585E /* Pods-ChessNote.debug.xcconfig */,
+				C0D5009799C4C6F4DB04416A /* Pods-ChessNote.release.xcconfig */,
 			);
-			name = ExpoModulesProviders;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -107,8 +98,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				5DC531E63A198D9E1CD5E927 /* Pods */,
-				749FD851C8DDEE00EA3B030C /* ExpoModulesProviders */,
+				730B8C825727D98FDB124BBF /* Pods */,
+				E491A23CE098D3BA015F6D88 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -132,6 +123,14 @@
 			path = ChessNote/Supporting;
 			sourceTree = "<group>";
 		};
+		E491A23CE098D3BA015F6D88 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				3E7AF03EF8570DB8A5A0FCB1 /* ChessNote */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -140,7 +139,7 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ChessNote" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				45EBDF814F86BA7DBC2E3BF7 /* [Expo] Configure project */,
+				21E5A4543E76F14475FBB6A6 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
@@ -195,7 +194,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				74B804E4FB451EC09EF61AF4 /* PrivacyInfo.xcprivacy in Resources */,
+				F9EEB89E7A63C36E54A51F82 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,7 +238,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		45EBDF814F86BA7DBC2E3BF7 /* [Expo] Configure project */ = {
+		21E5A4543E76F14475FBB6A6 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -340,7 +339,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				53E86CCB8B3ACCE46C676E1A /* ExpoModulesProvider.swift in Sources */,
+				95710A4EA8C98ACA1AD2A449 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -349,12 +348,13 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AA6C92D5B2AB3E9ACC014A38 /* Pods-ChessNote.debug.xcconfig */;
+			baseConfigurationReference = 831723A3D08D31E0D46E585E /* Pods-ChessNote.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ChessNote/ChessNote.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = V4B7T57FTP;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -385,12 +385,13 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 68C26D0994524A97A5B4FD6B /* Pods-ChessNote.release.xcconfig */;
+			baseConfigurationReference = C0D5009799C4C6F4DB04416A /* Pods-ChessNote.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ChessNote/ChessNote.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = V4B7T57FTP;
 				INFOPLIST_FILE = ChessNote/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -468,10 +469,7 @@
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -526,10 +524,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/usr/lib/swift\"$(inherited)\"";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = false;
