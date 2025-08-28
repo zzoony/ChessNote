@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { ChessMove } from '@/types';
 
@@ -11,6 +11,17 @@ const GameNotation: React.FC<GameNotationProps> = ({
   moves, 
   title = '기보' 
 }) => {
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // 새로운 이동이 있을 때마다 자동 스크롤
+  useEffect(() => {
+    if (moves.length > 0 && scrollViewRef.current) {
+      // 약간의 지연을 두어 렌더링 완료 후 스크롤
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [moves.length]);
   // PGN 형식으로 이동들을 정리
   const formatMoves = () => {
     const formattedMoves = [];
@@ -44,6 +55,7 @@ const GameNotation: React.FC<GameNotationProps> = ({
       
       {/* 기보 내용 */}
       <ScrollView 
+        ref={scrollViewRef}
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >

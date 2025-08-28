@@ -55,7 +55,7 @@ const GameScreen: React.FC = () => {
       {/* 앱 제목 */}
       <View style={styles.header}>
         <Text style={styles.title}>ChessNote</Text>
-        <Text style={styles.version}>v1.0.5</Text>
+        <Text style={styles.version}>v1.1.0</Text>
         
         {/* 턴 표시 */}
         <Text style={[

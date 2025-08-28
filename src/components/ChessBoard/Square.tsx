@@ -123,6 +123,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 0,
+    margin: 0,
+    padding: 0,
   },
   piece: {
     // 기본 스타일

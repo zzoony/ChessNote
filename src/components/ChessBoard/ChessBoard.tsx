@@ -7,8 +7,8 @@ import { ChessPiece, PieceColor, BoardPosition } from '@/types';
 import { useGame } from '@/context/GameContext';
 
 const { width: screenWidth } = Dimensions.get('window');
-const BOARD_SIZE = Math.min(screenWidth * 0.9, 400);
-const SQUARE_SIZE = BOARD_SIZE / 8;
+const SQUARE_SIZE = Math.floor(Math.min(screenWidth * 0.9, 400) / 8); // 정확한 픽셀 정렬을 위해 floor 사용
+const BOARD_SIZE = SQUARE_SIZE * 8; // 정확히 8개의 정사각형 크기
 
 interface ChessBoardProps {
   position?: BoardPosition;
@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   board: {
-    borderWidth: 2,
-    borderColor: '#8b4513',
+    borderWidth: 0,
+    overflow: 'hidden',
   },
   fileLabels: {
     flexDirection: 'row',
@@ -271,6 +271,9 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    margin: 0,
+    padding: 0,
+    gap: 0,
   },
 });
 

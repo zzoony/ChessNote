@@ -67,8 +67,12 @@ const AnimatedPiece: React.FC<AnimatedPieceProps> = ({
     const fromPosition = squareToPosition(fromSquare, squareSize);
     const toPosition = squareToPosition(toSquare, squareSize);
     
-    // 시작 위치 설정
-    positionAnim.setValue(fromPosition);
+    // 초기값 설정을 requestAnimationFrame으로 지연
+    requestAnimationFrame(() => {
+      positionAnim.setValue(fromPosition);
+      scaleAnim.setValue(1);
+      shadowOpacityAnim.setValue(0);
+    });
     
     // 지연 시간 후 애니메이션 시작
     const timer = setTimeout(() => {
@@ -114,7 +118,7 @@ const AnimatedPiece: React.FC<AnimatedPieceProps> = ({
     }, delay);
     
     return () => clearTimeout(timer);
-  }, [fromSquare, toSquare, squareSize, positionAnim, scaleAnim, onAnimationComplete, delay]);
+  }, [fromSquare, toSquare, squareSize, onAnimationComplete, delay]);
 
   return (
     <>

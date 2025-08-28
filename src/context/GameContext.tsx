@@ -265,11 +265,35 @@ const gameReducer = (state: ExtendedGameState, action: GameAction): ExtendedGame
       if (state.moves.length === 0) return state;
       
       const newMoves = state.moves.slice(0, -1);
+      
+      // 캐슬링 권한을 역계산
+      const restoredCastlingRights = calculateCastlingRights(newMoves);
+      
+      // 앙파상 스퀘어도 역계산
+      let restoredEnPassantSquare: string | null = null;
+      if (newMoves.length > 0) {
+        const lastMove = newMoves[newMoves.length - 1];
+        const piece = lastMove.piece;
+        
+        // 마지막 이동이 폰의 2칸 이동인지 확인
+        if (piece.type === 'pawn' && Math.abs(squareToCoordinate(lastMove.to)[1] - squareToCoordinate(lastMove.from)[1]) === 2) {
+          const middleRank = piece.color === 'white' ? '3' : '6';
+          restoredEnPassantSquare = lastMove.to[0] + middleRank;
+        }
+      }
+      
       return {
         ...state,
         moves: newMoves,
         currentPlayer: getCurrentTurn(newMoves.length),
+        castlingRights: restoredCastlingRights,
+        enPassantSquare: restoredEnPassantSquare,
         selectedSquare: null, // 실행취소 시 선택 해제
+        gameStatus: 'playing', // 게임 상태도 리셋
+        headers: {
+          ...state.headers,
+          Result: '*', // 진행 중으로 복원
+        },
       };
     
     case 'SET_SELECTED_SQUARE':
@@ -281,6 +305,47 @@ const gameReducer = (state: ExtendedGameState, action: GameAction): ExtendedGame
     default:
       return state;
   }
+};
+
+// 캐슬링 권한 역계산 함수
+const calculateCastlingRights = (moves: ChessMove[]) => {
+  const rights = {
+    whiteKingSide: true,
+    whiteQueenSide: true,
+    blackKingSide: true,
+    blackQueenSide: true,
+  };
+  
+  moves.forEach(move => {
+    // 킹이 이동한 경우
+    if (move.piece.type === 'king') {
+      if (move.piece.color === 'white') {
+        rights.whiteKingSide = false;
+        rights.whiteQueenSide = false;
+      } else {
+        rights.blackKingSide = false;
+        rights.blackQueenSide = false;
+      }
+    }
+    
+    // 룩이 이동한 경우
+    if (move.piece.type === 'rook') {
+      if (move.from === 'a1') rights.whiteQueenSide = false;
+      else if (move.from === 'h1') rights.whiteKingSide = false;
+      else if (move.from === 'a8') rights.blackQueenSide = false;
+      else if (move.from === 'h8') rights.blackKingSide = false;
+    }
+    
+    // 룩이 잡힌 경우
+    if (move.capturedPiece?.type === 'rook') {
+      if (move.to === 'a1') rights.whiteQueenSide = false;
+      else if (move.to === 'h1') rights.whiteKingSide = false;
+      else if (move.to === 'a8') rights.blackQueenSide = false;
+      else if (move.to === 'h8') rights.blackKingSide = false;
+    }
+  });
+  
+  return rights;
 };
 
 // 현재 보드 위치 계산 (이동 히스토리에서)
