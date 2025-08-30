@@ -9,6 +9,10 @@
       "distribution": "internal",
       "ios": {
         "resourceClass": "default"
+      },
+      "android": {
+        "resourceClass": "default",
+        "buildType": "apk"
       }
     },
     "preview": {
@@ -16,6 +20,10 @@
       "distribution": "internal",
       "ios": {
         "resourceClass": "default"
+      },
+      "android": {
+        "resourceClass": "default",
+        "buildType": "apk"
       }
     },
     "production": {
@@ -23,6 +31,10 @@
       "distribution": "store",
       "ios": {
         "resourceClass": "default"
+      },
+      "android": {
+        "resourceClass": "default",
+        "buildType": "aab"
       }
     }
   },

@@ -12,8 +12,9 @@
   "dependencies": {
     "@expo/cli": "^0.24.20",
     "chessops": "^0.14.0",
-    "expo": "53.0.22",
+    "expo": "^53.0.22",
     "expo-clipboard": "^7.1.5",
+    "expo-dev-client": "~5.2.4",
     "expo-file-system": "~18.1.11",
     "expo-keep-awake": "^14.1.4",
     "expo-sharing": "~13.1.5",
@@ -21,8 +22,7 @@
     "react": "19.0.0",
     "react-native": "0.79.5",
     "react-native-paper": "^5.12.3",
-    "react-native-vector-icons": "^10.0.3",
-    "expo-dev-client": "~5.2.4"
+    "react-native-vector-icons": "^10.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
