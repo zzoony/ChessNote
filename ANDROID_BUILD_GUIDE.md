@@ -96,10 +96,13 @@ npx expo install react-native-safe-area-context  # 필수 peer dependency
 # 4. Release APK 빌드 (standalone)
 cd android && ./gradlew assembleRelease
 
-# 5. APK 복사 및 이름 변경
-cd .. && cp app/build/outputs/apk/release/app-release.apk ChessNote.apk
+# 5. APK 복사 및 이름 변경 (★ 필수 - 쉬운 접근을 위함)
+cd .. && cp android/app/build/outputs/apk/release/app-release.apk ChessNote.apk
 
-# 빌드 결과: 완전한 standalone APK (90MB, 독립 실행 가능)
+# 빌드 결과: 
+# - 원본: android/app/build/outputs/apk/release/app-release.apk
+# - 복사본: ChessNote.apk (쉬운 접근을 위한 프로젝트 루트 위치)
+# - 크기: ~87MB, 완전한 standalone APK (독립 실행 가능)
 ```
 
 ### Method 2: Expo Development Build (개발용)
