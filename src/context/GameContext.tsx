@@ -13,6 +13,7 @@ import {
   squareToCoordinate,
   getPossibleMoves
 } from '@/utils/chessLogic';
+import { HapticFeedback } from '@/utils/hapticFeedback';
 
 // 액션 타입들
 type GameAction =
@@ -229,8 +230,18 @@ const gameReducer = (state: ExtendedGameState, action: GameAction): ExtendedGame
         // 체크/체크메이트 표시를 SAN에 추가
         if (gameStatus === 'checkmate') {
           san += '#';
+          // 체크메이트 시 에러 햅틱 피드백
+          HapticFeedback.error();
         } else if (gameStatus === 'check') {
           san += '+';
+          // 체크 시 경고 햅틱 피드백
+          HapticFeedback.warning();
+        } else if (capturedPiece) {
+          // 기물 캡처 시 강한 피드백
+          HapticFeedback.heavy();
+        } else {
+          // 일반 이동 시 중간 피드백
+          HapticFeedback.medium();
         }
         
         return {
@@ -297,6 +308,10 @@ const gameReducer = (state: ExtendedGameState, action: GameAction): ExtendedGame
       };
     
     case 'SET_SELECTED_SQUARE':
+      // 기물 선택 시 햅틱 피드백
+      if (action.payload) {
+        HapticFeedback.selection();
+      }
       return {
         ...state,
         selectedSquare: action.payload,

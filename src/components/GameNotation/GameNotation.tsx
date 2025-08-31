@@ -1,16 +1,22 @@
-import React, { useRef, useEffect } from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import React, { useRef, useEffect, useMemo } from 'react';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ChessMove } from '@/types';
+import { useTheme } from '@/context/ThemeContext';
 
 interface GameNotationProps {
   moves: ChessMove[];
   title?: string;
+  currentMoveIndex?: number;
+  onMovePress?: (index: number) => void;
 }
 
-const GameNotation: React.FC<GameNotationProps> = ({ 
+const GameNotation: React.FC<GameNotationProps> = React.memo(({ 
   moves, 
-  title = '기보' 
+  title = '기보',
+  currentMoveIndex = -1,
+  onMovePress
 }) => {
+  const { currentTheme } = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
 
   // 새로운 이동이 있을 때마다 자동 스크롤
@@ -22,34 +28,51 @@ const GameNotation: React.FC<GameNotationProps> = ({
       }, 100);
     }
   }, [moves.length]);
-  // PGN 형식으로 이동들을 정리
-  const formatMoves = () => {
-    const formattedMoves = [];
+  
+  // PGN 형식으로 이동들을 정리 (memoized)
+  const formattedMoves = useMemo(() => {
+    const formatted = [];
     
     for (let i = 0; i < moves.length; i += 2) {
       const moveNumber = Math.floor(i / 2) + 1;
       const whiteMove = moves[i]?.san || '';
       const blackMove = moves[i + 1]?.san || '';
       
-      formattedMoves.push({
+      formatted.push({
         number: moveNumber,
         white: whiteMove,
         black: blackMove,
+        whiteIndex: i,
+        blackIndex: i + 1
       });
     }
     
-    return formattedMoves;
+    return formatted;
+  }, [moves]);
+
+  const handleMovePress = (index: number) => {
+    if (onMovePress && index < moves.length) {
+      onMovePress(index);
+    }
   };
 
-  const formattedMoves = formatMoves();
+  const getMoveStyle = (moveIndex: number) => {
+    const isSelected = moveIndex === currentMoveIndex;
+    return [
+      styles.move,
+      moveIndex % 2 === 0 ? styles.whiteMove : styles.blackMove,
+      isSelected && styles.selectedMove,
+      onMovePress && styles.clickableMove
+    ];
+  };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: currentTheme.colors.card }]}>
       {/* 제목 */}
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.moveCount}>
-          {moves.length}수 진행
+      <View style={[styles.header, { borderBottomColor: currentTheme.colors.border }]}>
+        <Text style={[styles.title, { color: currentTheme.colors.text }]}>{title}</Text>
+        <Text style={[styles.moveCount, { color: currentTheme.colors.textSecondary }]}>
+          {currentMoveIndex >= 0 ? `${currentMoveIndex + 1}/` : ''}{moves.length}수
         </Text>
       </View>
       
@@ -60,29 +83,51 @@ const GameNotation: React.FC<GameNotationProps> = ({
         showsVerticalScrollIndicator={false}
       >
         {formattedMoves.length === 0 ? (
-          <Text style={styles.emptyText}>
-            체스 기물을 움직여서 기보를 시작하세요
+          <Text style={[styles.emptyText, { color: currentTheme.colors.textSecondary }]}>
+            {onMovePress ? 'PGN을 가져와서 기보를 확인하세요' : '체스 기물을 움직여서 기보를 시작하세요'}
           </Text>
         ) : (
           formattedMoves.map((move, index) => (
-            <View key={index} style={styles.moveRow}>
-              <Text style={styles.moveNumber}>{move.number}.</Text>
+            <View key={index} style={[styles.moveRow, { borderBottomColor: currentTheme.colors.border }]}>
+              <Text style={[styles.moveNumber, { color: currentTheme.colors.textSecondary }]}>{move.number}.</Text>
               <View style={styles.movesContainer}>
-                <Text style={[styles.move, styles.whiteMove]}>
-                  {move.white}
-                </Text>
-                {move.black && (
-                  <Text style={[styles.move, styles.blackMove]}>
-                    {move.black}
-                  </Text>
+                {move.white && (
+                  <TouchableOpacity
+                    onPress={() => handleMovePress(move.whiteIndex)}
+                    disabled={!onMovePress}
+                    style={getMoveStyle(move.whiteIndex)}
+                  >
+                    <Text style={[
+                      styles.moveText,
+                      move.whiteIndex % 2 === 0 ? styles.whiteMoveText : styles.blackMoveText,
+                      move.whiteIndex === currentMoveIndex && styles.selectedMoveText
+                    ]}>
+                      {move.white}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {move.black && move.blackIndex < moves.length && (
+                  <TouchableOpacity
+                    onPress={() => handleMovePress(move.blackIndex)}
+                    disabled={!onMovePress}
+                    style={getMoveStyle(move.blackIndex)}
+                  >
+                    <Text style={[
+                      styles.moveText,
+                      move.blackIndex % 2 === 0 ? styles.whiteMoveText : styles.blackMoveText,
+                      move.blackIndex === currentMoveIndex && styles.selectedMoveText
+                    ]}>
+                      {move.black}
+                    </Text>
+                  </TouchableOpacity>
                 )}
               </View>
             </View>
           ))
         )}
         
-        {/* 최근 이동 하이라이트 */}
-        {moves.length > 0 && (
+        {/* 최근 이동 하이라이트 (일반 모드에서만) */}
+        {moves.length > 0 && !onMovePress && (
           <View style={styles.lastMoveContainer}>
             <Text style={styles.lastMoveLabel}>마지막 이동:</Text>
             <Text style={styles.lastMove}>
@@ -90,22 +135,31 @@ const GameNotation: React.FC<GameNotationProps> = ({
             </Text>
           </View>
         )}
+        
+        {/* 현재 위치 표시 (리뷰 모드에서만) */}
+        {onMovePress && currentMoveIndex >= 0 && moves[currentMoveIndex] && (
+          <View style={styles.currentMoveContainer}>
+            <Text style={styles.currentMoveLabel}>현재 수:</Text>
+            <Text style={styles.currentMove}>
+              {Math.floor(currentMoveIndex / 2) + 1}{currentMoveIndex % 2 === 0 ? '.' : '...'} {moves[currentMoveIndex].san}
+            </Text>
+          </View>
+        )}
       </ScrollView>
       
       {/* 하단 정보 */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          PGN 형식 • 실시간 업데이트
+      <View style={[styles.footer, { borderTopColor: currentTheme.colors.border }]}>
+        <Text style={[styles.footerText, { color: currentTheme.colors.textSecondary }]}>
+          PGN 형식 • {onMovePress ? '터치하여 이동' : '실시간 업데이트'}
         </Text>
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2a2724',
     borderRadius: 10,
     overflow: 'hidden',
   },
@@ -116,23 +170,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#3d3a36',
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ffffff',
   },
   moveCount: {
     fontSize: 12,
-    color: '#b0b0b0',
   },
   scrollView: {
     flex: 1,
     paddingHorizontal: 15,
   },
   emptyText: {
-    color: '#888',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 20,
@@ -143,10 +193,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 0.5,
-    borderBottomColor: '#3d3a36',
   },
   moveNumber: {
-    color: '#b0b0b0',
     fontSize: 14,
     fontWeight: '600',
     width: 30,
@@ -156,22 +204,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   move: {
-    fontSize: 16,
-    fontFamily: 'monospace',
     paddingHorizontal: 8,
     paddingVertical: 2,
     marginRight: 10,
     borderRadius: 4,
     minWidth: 50,
-    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   whiteMove: {
-    color: '#000000',
     backgroundColor: '#f0d9b5',
   },
   blackMove: {
-    color: '#ffffff',
     backgroundColor: '#4a4642',
+  },
+  selectedMove: {
+    backgroundColor: '#4CAF50',
+    borderWidth: 2,
+    borderColor: '#2E7D32',
+  },
+  clickableMove: {
+    opacity: 0.9,
+  },
+  moveText: {
+    fontSize: 16,
+    fontFamily: 'monospace',
+    textAlign: 'center',
+  },
+  whiteMoveText: {
+    color: '#000000',
+  },
+  blackMoveText: {
+    color: '#ffffff',
+  },
+  selectedMoveText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
   },
   lastMoveContainer: {
     flexDirection: 'row',
@@ -193,15 +261,33 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontFamily: 'monospace',
   },
+  currentMoveContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginTop: 10,
+    backgroundColor: '#2E7D32',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+  },
+  currentMoveLabel: {
+    color: '#ffffff',
+    fontSize: 12,
+    marginRight: 8,
+  },
+  currentMove: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
+  },
   footer: {
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#3d3a36',
     alignItems: 'center',
   },
   footerText: {
-    color: '#888',
     fontSize: 10,
   },
 });

@@ -569,3 +569,139 @@ export const generatePGN = (moves: ChessMove[]): string => {
   
   return pgn.trim();
 };
+
+// FEN 문자열을 BoardPosition으로 파싱
+export const parseFEN = (fen: string): BoardPosition => {
+  const position: BoardPosition = {};
+  const parts = fen.split(' ');
+  const boardPart = parts[0];
+  
+  const ranks = boardPart.split('/');
+  
+  for (let rankIndex = 0; rankIndex < 8; rankIndex++) {
+    const rank = ranks[rankIndex];
+    let fileIndex = 0;
+    
+    for (let i = 0; i < rank.length; i++) {
+      const char = rank[i];
+      
+      if (char >= '1' && char <= '8') {
+        // 빈 칸 스킵
+        fileIndex += parseInt(char);
+      } else {
+        // 기물 배치
+        const square = coordinateToSquare(fileIndex, 7 - rankIndex);
+        const color: PieceColor = char === char.toUpperCase() ? 'white' : 'black';
+        const pieceMap: { [key: string]: string } = {
+          'k': 'king', 'q': 'queen', 'r': 'rook', 
+          'b': 'bishop', 'n': 'knight', 'p': 'pawn'
+        };
+        
+        const pieceType = pieceMap[char.toLowerCase()];
+        if (pieceType) {
+          position[square] = {
+            type: pieceType as any,
+            color
+          };
+        }
+        fileIndex++;
+      }
+    }
+  }
+  
+  return position;
+};
+
+// 이동을 적용하여 새로운 position 반환
+export const applyMove = (
+  position: BoardPosition,
+  from: string,
+  to: string,
+  promotion?: 'queen' | 'rook' | 'bishop' | 'knight'
+): BoardPosition => {
+  const newPosition: BoardPosition = { ...position };
+  const piece = newPosition[from];
+  
+  if (!piece) return position;
+  
+  // 기본 이동
+  delete newPosition[from];
+  
+  // 프로모션 처리
+  if (promotion && piece.type === 'pawn') {
+    newPosition[to] = { type: promotion, color: piece.color };
+  } else {
+    newPosition[to] = piece;
+  }
+  
+  // 캐슬링 처리 (간단화)
+  if (piece.type === 'king') {
+    const [fromFile] = squareToCoordinate(from);
+    const [toFile] = squareToCoordinate(to);
+    
+    // 킹사이드 캐슬링
+    if (fromFile === 4 && toFile === 6) {
+      const rookFrom = coordinateToSquare(7, 7 - parseInt(from[1]) + 1);
+      const rookTo = coordinateToSquare(5, 7 - parseInt(from[1]) + 1);
+      if (newPosition[rookFrom]) {
+        newPosition[rookTo] = newPosition[rookFrom];
+        delete newPosition[rookFrom];
+      }
+    }
+    // 퀸사이드 캐슬링
+    else if (fromFile === 4 && toFile === 2) {
+      const rookFrom = coordinateToSquare(0, 7 - parseInt(from[1]) + 1);
+      const rookTo = coordinateToSquare(3, 7 - parseInt(from[1]) + 1);
+      if (newPosition[rookFrom]) {
+        newPosition[rookTo] = newPosition[rookFrom];
+        delete newPosition[rookFrom];
+      }
+    }
+  }
+  
+  return newPosition;
+};
+
+// BoardPosition에서 현재 턴 가져오기
+export const getCurrentTurnFromPosition = (position: BoardPosition): PieceColor => {
+  // 간단히 기물 개수로 판단 (실제로는 FEN의 턴 정보를 사용해야 함)
+  const pieces = Object.values(position);
+  const whitePieces = pieces.filter(p => p && p.color === 'white').length;
+  const blackPieces = pieces.filter(p => p && p.color === 'black').length;
+  
+  // 더 정확한 구현이 필요하지만, 일단 백부터 시작한다고 가정
+  return 'white';
+};
+
+// 오버로드된 generateSAN 함수 (BoardPosition 버전)
+export const generateSANFromPosition = (
+  position: BoardPosition,
+  from: string,
+  to: string,
+  promotion?: 'queen' | 'rook' | 'bishop' | 'knight'
+): string => {
+  const piece = position[from];
+  const capturedPiece = position[to];
+  
+  if (!piece) return '';
+  
+  return generateSAN(from, to, piece, capturedPiece);
+};
+
+// 오버로드된 getPossibleMoves 함수 (position과 color만 받는 버전)
+export const getPossibleMovesForPosition = (
+  position: BoardPosition,
+  color: PieceColor
+): string[] => {
+  const possibleMoves: string[] = [];
+  
+  // 해당 색깔의 모든 기물 찾기
+  Object.entries(position).forEach(([square, piece]) => {
+    if (piece && piece.color === color) {
+      const moves = getPossibleMoves(square, position);
+      possibleMoves.push(...moves);
+    }
+  });
+  
+  return possibleMoves;
+};

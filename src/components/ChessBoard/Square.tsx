@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, StyleSheet, Image, View, Animated } from 'react-native';
 import { ChessPiece } from '@/types';
+import { Theme } from '@/context/ThemeContext';
 
 interface SquareProps {
   square: string; // 'a1', 'b2' 등
@@ -13,9 +14,11 @@ interface SquareProps {
   onPress: (square: string) => void;
   animatingPiece?: ChessPiece | null; // 애니메이션 중인 기물
   isAnimationTarget?: boolean; // 애니메이션 목적지인지
+  boardColors?: { light: string; dark: string; border: string };
+  theme?: Theme;
 }
 
-const Square: React.FC<SquareProps> = ({ 
+const Square: React.FC<SquareProps> = React.memo(({ 
   square, 
   piece, 
   isLight, 
@@ -25,7 +28,9 @@ const Square: React.FC<SquareProps> = ({
   isLastMoveSquare = false,
   onPress,
   animatingPiece = null,
-  isAnimationTarget = false
+  isAnimationTarget = false,
+  boardColors,
+  theme
 }) => {
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -71,9 +76,16 @@ const Square: React.FC<SquareProps> = ({
 
   // 배경색 결정
   const getBackgroundColor = () => {
-    if (isSelected) return '#ffff00'; // 선택된 기물 (노란색)
-    if (isLastMoveSquare) return '#ffcc80'; // 마지막 이동 칸 (연한 오렌지)
-    return isLight ? '#f0d9b5' : '#b58863'; // 기본 칸 색상
+    if (isSelected) return theme?.colors.selectedSquare || '#ffff00';
+    if (isLastMoveSquare) return theme?.colors.lastMove || '#ffcc80';
+    
+    // 보드 테마 색상 사용
+    if (boardColors) {
+      return isLight ? boardColors.light : boardColors.dark;
+    }
+    
+    // 기본값
+    return isLight ? '#f0d9b5' : '#b58863';
   };
 
   return (
@@ -99,24 +111,32 @@ const Square: React.FC<SquareProps> = ({
       )}
       {/* 가능한 이동 위치 점 표시 (기물이 없는 칸) */}
       {isPossibleMove && !piece && (
-        <View style={[styles.possibleMoveDot, { 
-          width: size * 0.3, 
-          height: size * 0.3, 
-          borderRadius: size * 0.15 
-        }]} />
+        <View style={[
+          styles.possibleMoveDot, 
+          { 
+            width: size * 0.3, 
+            height: size * 0.3, 
+            borderRadius: size * 0.15,
+            backgroundColor: theme?.colors.possibleMove || 'rgba(0, 150, 0, 0.5)'
+          }
+        ]} />
       )}
       {/* 캡처 가능한 기물 표시 (기물이 있는 칸) */}
       {isPossibleMove && piece && (
-        <View style={[styles.captureIndicator, { 
-          width: size - 4, 
-          height: size - 4,
-          borderWidth: 3,
-          borderRadius: size * 0.1
-        }]} />
+        <View style={[
+          styles.captureIndicator, 
+          { 
+            width: size - 4, 
+            height: size - 4,
+            borderWidth: 3,
+            borderRadius: size * 0.1,
+            borderColor: theme?.colors.possibleMove || 'rgba(255, 0, 0, 0.5)'
+          }
+        ]} />
       )}
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   square: {
@@ -130,11 +150,9 @@ const styles = StyleSheet.create({
     // 기본 스타일
   },
   possibleMoveDot: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     position: 'absolute',
   },
   captureIndicator: {
-    borderColor: 'rgba(255, 0, 0, 0.5)',
     position: 'absolute',
   },
 });

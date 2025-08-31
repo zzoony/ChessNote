@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import Square from './Square';
 import PromotionDialog from './PromotionDialog';
 import AnimatedPiece from './AnimatedPiece';
 import { ChessPiece, PieceColor, BoardPosition } from '@/types';
 import { useGame } from '@/context/GameContext';
+import { useTheme } from '@/context/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 const SQUARE_SIZE = Math.floor(Math.min(screenWidth * 0.9, 400) / 8); // 정확한 픽셀 정렬을 위해 floor 사용
@@ -12,10 +13,23 @@ const BOARD_SIZE = SQUARE_SIZE * 8; // 정확히 8개의 정사각형 크기
 
 interface ChessBoardProps {
   position?: BoardPosition;
-  onMove?: (from: string, to: string) => void;
+  onMove?: (from: string, to: string, promotion?: 'queen' | 'rook' | 'bishop' | 'knight') => void;
+  possibleMoves?: string[];
+  lastMove?: { from: string; to: string } | null;
+  disabled?: boolean;
+  selectedSquare?: string | null;
+  onSquareSelect?: (square: string | null) => void;
 }
 
-const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
+const ChessBoard: React.FC<ChessBoardProps> = React.memo(({ 
+  position, 
+  onMove, 
+  possibleMoves: propsPossibleMoves,
+  lastMove: propsLastMove,
+  disabled = false,
+  selectedSquare: propsSelectedSquare,
+  onSquareSelect
+}) => {
   const { 
     gameState, 
     position: contextPosition, 
@@ -32,6 +46,9 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
     animationState,
     onAnimationComplete
   } = useGame();
+  
+  const { currentTheme, getBoardColors, settings } = useTheme();
+  const boardColors = getBoardColors();
   const currentPosition = position || contextPosition;
 
   const handleSquarePress = (square: string) => {
@@ -75,7 +92,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
     }
   };
 
-  const renderBoard = () => {
+  const boardRows = useMemo(() => {
     const rows = [];
     
     // 8랭크부터 1랭크까지 (위에서 아래로)
@@ -108,6 +125,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
             onPress={handleSquarePress}
             animatingPiece={animatingPiece}
             isAnimationTarget={isAnimationTarget}
+            boardColors={boardColors}
+            theme={currentTheme}
           />
         );
       }
@@ -120,7 +139,16 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
     }
     
     return rows;
-  };
+  }, [
+    currentPosition,
+    selectedSquare,
+    possibleMoves,
+    lastMove,
+    animationState,
+    handleSquarePress,
+    boardColors,
+    currentTheme
+  ]);
 
   // 게임 상태 텍스트 생성
   const getStatusText = () => {
@@ -161,15 +189,22 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
         <View style={[styles.rankLabels, { height: BOARD_SIZE }]}>
           {[8, 7, 6, 5, 4, 3, 2, 1].map((rank) => (
             <View key={rank} style={[styles.rankLabel, { height: SQUARE_SIZE }]}>
-              <Text style={styles.coordinateText}>{rank}</Text>
+              <Text style={[styles.coordinateText, { color: currentTheme.colors.textSecondary }]}>{rank}</Text>
             </View>
           ))}
         </View>
         
         {/* 체스보드 */}
         <View style={styles.boardWrapper}>
-          <View style={[styles.board, { width: BOARD_SIZE, height: BOARD_SIZE }]}>
-            {renderBoard()}
+          <View style={[
+            styles.board, 
+            { 
+              width: BOARD_SIZE, 
+              height: BOARD_SIZE,
+              borderColor: boardColors.border,
+            }
+          ]}>
+            {boardRows}
             
             {/* 애니메이션 레이어 */}
             {animationState && animationState.isAnimating && animationState.animatingMoves.map((move, index) => (
@@ -190,7 +225,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
           <View style={styles.fileLabels}>
             {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((file) => (
               <View key={file} style={[styles.fileLabel, { width: SQUARE_SIZE }]}>
-                <Text style={styles.coordinateText}>{file}</Text>
+                <Text style={[styles.coordinateText, { color: currentTheme.colors.textSecondary }]}>{file}</Text>
               </View>
             ))}
           </View>
@@ -207,7 +242,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
       )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -267,7 +302,6 @@ const styles = StyleSheet.create({
   coordinateText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666',
   },
   row: {
     flexDirection: 'row',

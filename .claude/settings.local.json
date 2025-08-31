@@ -45,7 +45,17 @@
       "Bash(xcrun simctl spawn:*)",
       "Read(/Users/peter/Desktop/**)",
       "Read(/Users/peter/Desktop/**)",
-      "Read(/Users/peter/Desktop/**)"
+      "Read(/Users/peter/Desktop/**)",
+      "Bash(xcrun devicectl list:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(tree:*)",
+      "Bash(CI=1 npx expo start --port 8082)",
+      "Bash(lsof:*)",
+      "Bash(watchman watch-del:*)",
+      "Bash(watchman watch-project:*)",
+      "Bash(grep:*)",
+      "Bash(npm search:*)",
+      "Bash(npm info:*)"
     ],
     "deny": [],
     "ask": [],
