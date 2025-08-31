@@ -144,7 +144,19 @@ npx expo run:ios --device "iPhone 16 Pro"
 npx expo run:android
 ```
 
-### 5. TypeScript 타입 체크
+### 5. Android APK 빌드 (프로덕션)
+
+```bash
+# 🚀 자동 환경 설정 (권장)
+./setup-android.sh
+
+# APK 빌드
+cd android && ./gradlew assembleRelease
+```
+
+**완전한 Android 빌드 가이드**: [ANDROID_BUILD_GUIDE.md](./ANDROID_BUILD_GUIDE.md) 참조
+
+### 6. TypeScript 타입 체크
 
 ```bash
 npx tsc --noEmit

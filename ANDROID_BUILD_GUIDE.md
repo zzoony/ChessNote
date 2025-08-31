@@ -26,23 +26,57 @@ TypeScript: 5.8.3
 
 ## 🛠️ 빌드 환경 설정
 
-### 1. 환경 변수 설정 (필수)
+### 🚀 자동 설정 (권장)
+```bash
+# 프로젝트 clone 후 실행
+./setup-android.sh
+```
+이 스크립트는 자동으로 환경을 검증하고 필요한 설정을 완료합니다.
+
+### 수동 설정
+
+#### 1. 환경 변수 설정 (필수)
 ```bash
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools
 ```
 
-### 2. 프로젝트 디렉토리
+#### 2. 환경 검증
 ```bash
-cd /Users/peter/Dev/Projects/ChessNote
+# 필수 도구 확인
+node --version  # v18+ 필요
+npm --version   # v8+ 필요
+java -version   # OpenJDK 17+ 필요
+adb --version   # Android SDK가 제대로 설치되었는지 확인
+
+# ANDROID_HOME 확인
+echo $ANDROID_HOME
+ls $ANDROID_HOME  # platforms, build-tools 등이 있어야 함
 ```
 
-### 3. 필수 파일 확인
+#### 3. 프로젝트 디렉토리
+```bash
+cd /path/to/ChessNote  # clone한 프로젝트 경로
+```
+
+#### 4. 의존성 설치
+```bash
+npm install
+npx expo install react-native-safe-area-context  # 필수 peer dependency
+```
+
+#### 5. local.properties 생성 (자동으로 생성되지 않은 경우)
+```bash
+echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+```
+
+### 필수 파일 확인
 - `package.json`: 의존성 및 스크립트 정의
 - `app.json`: Expo 앱 구성
 - `eas.json`: EAS Build 구성
 - `android/app/build.gradle`: 안드로이드 앱 빌드 설정
 - `android/build.gradle`: 전체 안드로이드 프로젝트 설정
+- `android/local.properties`: Android SDK 경로 (자동 생성됨)
 
 ## 🚀 빌드 방법별 가이드
 
