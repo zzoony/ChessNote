@@ -2,12 +2,13 @@ import { StatusBar } from 'expo-status-bar';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
+import { Provider as PaperProvider } from 'react-native-paper';
 import { GameProvider, useGame } from './src/context/GameContext';
 import ChessBoard from './src/components/ChessBoard';
 import { GameNotation, ImportModal } from './src/components/GameNotation';
 import { GameControls, MoveControls } from './src/components/Controls';
 import CapturedPiecesRow from './src/components/CapturedPieces';
-import { GameTreeNode } from './src/utils/pgnParser';
+import { getMovesFromTree } from './src/utils/pgnParser';
 import { ChessMove } from './src/types';
 
 // 메인 게임 컴포넌트 (GameProvider 내부)
@@ -78,20 +79,6 @@ const GameScreen: React.FC = () => {
     }
   }, [gameMode, loadedGame, gameState.moves]);
 
-  // 게임 트리에서 이동 배열 추출
-  const getMovesFromTree = (tree: GameTreeNode): ChessMove[] => {
-    const moves: ChessMove[] = [];
-    let currentNode = tree;
-    
-    while (currentNode.children.length > 0) {
-      currentNode = currentNode.children[0]; // 메인라인
-      if (currentNode.move) {
-        moves.push(currentNode.move);
-      }
-    }
-    
-    return moves;
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -163,9 +150,11 @@ export default function App() {
   }, []);
 
   return (
-    <GameProvider>
-      <GameScreen />
-    </GameProvider>
+    <PaperProvider>
+      <GameProvider>
+        <GameScreen />
+      </GameProvider>
+    </PaperProvider>
   );
 }
 

@@ -40,6 +40,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onDismiss }) => {
       }
 
       loadGame(parsedGame);
+      setGameMode('analysis');
       Alert.alert('성공', `게임을 불러왔습니다. (${parsedGame.totalMoves}수)`);
       setPgnText('');
       onDismiss();

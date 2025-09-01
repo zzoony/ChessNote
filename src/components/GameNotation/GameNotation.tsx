@@ -13,7 +13,7 @@ const GameNotation: React.FC<GameNotationProps> = ({
   title = '기보' 
 }) => {
   const scrollViewRef = useRef<ScrollView>(null);
-  const { gameMode, currentMoveIndex, goToMove } = useGame();
+  const { gameMode, currentMoveIndex, goToMove, loadedGame } = useGame();
 
   // 새로운 이동이 있을 때마다 자동 스크롤
   useEffect(() => {
@@ -77,6 +77,15 @@ const GameNotation: React.FC<GameNotationProps> = ({
   // 표시할 이동들 결정
   const formattedMoves = formatMoves();
 
+  // 로드된 게임 정보 표시
+  const getGameInfo = () => {
+    if (gameMode === 'analysis' && loadedGame) {
+      const { headers } = loadedGame;
+      return `${headers.White || '백'} vs ${headers.Black || '흑'} (${headers.Date || ''})`;
+    }
+    return `${moves.length}수 진행`;
+  };
+
   return (
     <View style={styles.container}>
       {/* 제목 */}
@@ -85,7 +94,7 @@ const GameNotation: React.FC<GameNotationProps> = ({
           {title} {gameMode === 'analysis' && '(분석 모드)'}
         </Text>
         <Text style={styles.moveCount}>
-          {moves.length}수 진행
+          {getGameInfo()}
         </Text>
       </View>
       
@@ -158,7 +167,10 @@ const GameNotation: React.FC<GameNotationProps> = ({
       {/* 하단 정보 */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          PGN 형식 • 실시간 업데이트
+          {gameMode === 'analysis' && loadedGame 
+            ? `결과: ${loadedGame.headers.Result || '*'} • PGN 분석 모드`
+            : 'PGN 형식 • 실시간 업데이트'
+          }
         </Text>
       </View>
     </View>

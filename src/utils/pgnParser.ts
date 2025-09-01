@@ -146,3 +146,18 @@ export const getTotalMoves = (tree: GameTreeNode): number => {
   countMoves(tree);
   return total;
 };
+
+// 게임 트리에서 이동 배열 추출
+export const getMovesFromTree = (tree: GameTreeNode): ChessMove[] => {
+  const moves: ChessMove[] = [];
+  let currentNode = tree;
+  
+  while (currentNode.children.length > 0) {
+    currentNode = currentNode.children[0]; // 메인라인
+    if (currentNode.move) {
+      moves.push(currentNode.move);
+    }
+  }
+  
+  return moves;
+};
