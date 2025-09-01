@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { useGame } from '@/context/GameContext';
 
@@ -42,12 +42,9 @@ const MoveControls: React.FC = () => {
       />
       
       <View style={styles.moveCounter}>
-        <IconButton
-          icon="information"
-          size={20}
-          disabled
-          iconColor="#b0b0b0"
-        />
+        <Text style={styles.moveText}>
+          {currentMoveIndex + 1}/{loadedGame.totalMoves}
+        </Text>
       </View>
       
       <IconButton
@@ -89,6 +86,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#3d3a36',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    minWidth: 60,
+  },
+  moveText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

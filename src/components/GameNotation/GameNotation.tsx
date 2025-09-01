@@ -43,7 +43,24 @@ const GameNotation: React.FC<GameNotationProps> = ({
     return formattedMoves;
   };
 
-  const formattedMoves = formatMoves();
+  // 표시용 이동들 포맷팅
+  const formatDisplayMoves = (displayMoves: ChessMove[]) => {
+    const formattedMoves = [];
+    
+    for (let i = 0; i < displayMoves.length; i += 2) {
+      const moveNumber = Math.floor(i / 2) + 1;
+      const whiteMove = displayMoves[i]?.san || '';
+      const blackMove = displayMoves[i + 1]?.san || '';
+      
+      formattedMoves.push({
+        number: moveNumber,
+        white: whiteMove,
+        black: blackMove,
+      });
+    }
+    
+    return formattedMoves;
+  };
 
   // 이동 클릭 핸들러
   const handleMoveClick = (moveIndex: number) => {
@@ -56,6 +73,9 @@ const GameNotation: React.FC<GameNotationProps> = ({
   const isCurrentMove = (moveIndex: number) => {
     return gameMode === 'analysis' && currentMoveIndex === moveIndex;
   };
+
+  // 표시할 이동들 결정
+  const formattedMoves = formatMoves();
 
   return (
     <View style={styles.container}>

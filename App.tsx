@@ -7,6 +7,8 @@ import ChessBoard from './src/components/ChessBoard';
 import { GameNotation, ImportModal } from './src/components/GameNotation';
 import { GameControls, MoveControls } from './src/components/Controls';
 import CapturedPiecesRow from './src/components/CapturedPieces';
+import { GameTreeNode } from './src/utils/pgnParser';
+import { ChessMove } from './src/types';
 
 // 메인 게임 컴포넌트 (GameProvider 내부)
 const GameScreen: React.FC = () => {
@@ -20,12 +22,19 @@ const GameScreen: React.FC = () => {
     isGameOver,
     gameResult,
     gameMode,
-    loadedGame
+    loadedGame,
+    currentMoveIndex
   } = useGame();
   
   const [showImportModal, setShowImportModal] = React.useState(false);
 
   const handleMove = (from: string, to: string) => {
+    // 분석 모드에서는 이동 비활성화
+    if (gameMode === 'analysis') {
+      console.log('분석 모드에서는 기물 이동이 비활성화됩니다.');
+      return;
+    }
+    
     const success = makeMove(from, to);
     if (success) {
       console.log(`기물 이동: ${from} → ${to}`);
@@ -35,7 +44,9 @@ const GameScreen: React.FC = () => {
   // 게임 상태 텍스트 생성
   const getStatusText = () => {
     if (gameMode === 'analysis' && loadedGame) {
-      return '분석 모드 - 가져온 게임';
+      const currentMove = currentMoveIndex + 1;
+      const totalMoves = loadedGame.totalMoves;
+      return `분석 모드 - ${currentMove}/${totalMoves}수`;
     }
     
     if (isGameOver) {
@@ -57,9 +68,30 @@ const GameScreen: React.FC = () => {
   };
 
   // 현재 표시할 이동 목록 결정
-  const currentMoves = gameMode === 'analysis' && loadedGame 
-    ? [] // 분석 모드에서는 로드된 게임의 이동을 표시하도록 나중에 구현
-    : gameState.moves;
+  const currentMoves = React.useMemo(() => {
+    if (gameMode === 'analysis' && loadedGame) {
+      // 분석 모드: 로드된 게임의 이동들을 평면 배열로 변환
+      return getMovesFromTree(loadedGame.tree);
+    } else {
+      // 라이브 모드: 현재 게임 상태
+      return gameState.moves;
+    }
+  }, [gameMode, loadedGame, gameState.moves]);
+
+  // 게임 트리에서 이동 배열 추출
+  const getMovesFromTree = (tree: GameTreeNode): ChessMove[] => {
+    const moves: ChessMove[] = [];
+    let currentNode = tree;
+    
+    while (currentNode.children.length > 0) {
+      currentNode = currentNode.children[0]; // 메인라인
+      if (currentNode.move) {
+        moves.push(currentNode.move);
+      }
+    }
+    
+    return moves;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
