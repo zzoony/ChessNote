@@ -13,6 +13,10 @@ import {
   squareToCoordinate,
   getPossibleMoves
 } from '@/utils/chessLogic';
+import { GameTreeNode, ParsedGame } from '@/utils/pgnParser';
+
+// 게임 모드 타입
+export type GameMode = 'live' | 'analysis';
 
 // 액션 타입들
 type GameAction =
@@ -23,7 +27,14 @@ type GameAction =
   | { type: 'START_MOVE_ANIMATION'; payload: { moves: AnimatingMove[] } }
   | { type: 'ANIMATION_PIECE_COMPLETE' }
   | { type: 'COMPLETE_MOVE_ANIMATION' }
-  | { type: 'SET_SELECTED_SQUARE'; payload: string | null };
+  | { type: 'SET_SELECTED_SQUARE'; payload: string | null }
+  | { type: 'LOAD_GAME'; payload: ParsedGame }
+  | { type: 'SET_GAME_MODE'; payload: GameMode }
+  | { type: 'GO_TO_MOVE'; payload: number }
+  | { type: 'GO_TO_NEXT' }
+  | { type: 'GO_TO_PREVIOUS' }
+  | { type: 'GO_TO_START' }
+  | { type: 'GO_TO_END' };
 
 // 애니메이션 상태 인터페이스
 interface AnimatingMove {
@@ -52,11 +63,27 @@ interface GameContextType {
   gameResult: string | null;
   pendingPromotion: { from: string; to: string } | null;
   animationState: AnimationState;
+  
+  // 기존 기능
   makeMove: (from: string, to: string, promotion?: 'queen' | 'rook' | 'bishop' | 'knight') => boolean;
   setSelectedSquare: (square: string | null) => void;
   onAnimationComplete: () => void;
   newGame: () => void;
   undoMove: () => void;
+  
+  // 새로운 분석 모드 기능
+  gameMode: GameMode;
+  loadedGame: ParsedGame | null;
+  currentMoveIndex: number;
+  canGoNext: boolean;
+  canGoPrevious: boolean;
+  loadGame: (parsedGame: ParsedGame) => void;
+  setGameMode: (mode: GameMode) => void;
+  goToMove: (index: number) => void;
+  goToNext: () => void;
+  goToPrevious: () => void;
+  goToStart: () => void;
+  goToEnd: () => void;
 }
 
 // 초기 애니메이션 상태
@@ -91,6 +118,9 @@ const initialGameState: GameState = {
 interface ExtendedGameState extends GameState {
   selectedSquare: string | null;
   animationState: AnimationState;
+  gameMode: GameMode;
+  loadedGame: ParsedGame | null;
+  currentMoveIndex: number;
 }
 
 // 초기 확장 상태
@@ -102,6 +132,9 @@ const initialExtendedGameState: ExtendedGameState = {
     animatingMoves: [],
     completedAnimations: 0,
   },
+  gameMode: 'live',
+  loadedGame: null,
+  currentMoveIndex: -1, // -1은 시작 위치
 };
 
 // Reducer 함수
@@ -302,6 +335,65 @@ const gameReducer = (state: ExtendedGameState, action: GameAction): ExtendedGame
         selectedSquare: action.payload,
       };
     
+    case 'LOAD_GAME':
+      return {
+        ...state,
+        gameMode: 'analysis',
+        loadedGame: action.payload,
+        currentMoveIndex: -1, // 시작 위치
+        selectedSquare: null,
+      };
+    
+    case 'SET_GAME_MODE':
+      return {
+        ...state,
+        gameMode: action.payload,
+        selectedSquare: null,
+        // live 모드로 전환 시 로드된 게임 초기화
+        ...(action.payload === 'live' ? { loadedGame: null, currentMoveIndex: -1 } : {}),
+      };
+    
+    case 'GO_TO_MOVE':
+      if (state.gameMode !== 'analysis' || !state.loadedGame) return state;
+      const targetIndex = Math.max(-1, Math.min(action.payload, state.loadedGame.totalMoves - 1));
+      return {
+        ...state,
+        currentMoveIndex: targetIndex,
+        selectedSquare: null,
+      };
+    
+    case 'GO_TO_NEXT':
+      if (state.gameMode !== 'analysis' || !state.loadedGame) return state;
+      return {
+        ...state,
+        currentMoveIndex: Math.min(state.currentMoveIndex + 1, state.loadedGame.totalMoves - 1),
+        selectedSquare: null,
+      };
+    
+    case 'GO_TO_PREVIOUS':
+      if (state.gameMode !== 'analysis' || !state.loadedGame) return state;
+      return {
+        ...state,
+        currentMoveIndex: Math.max(state.currentMoveIndex - 1, -1),
+        selectedSquare: null,
+      };
+    
+    case 'GO_TO_START':
+      if (state.gameMode !== 'analysis' || !state.loadedGame) return state;
+      return {
+        ...state,
+        currentMoveIndex: -1,
+        selectedSquare: null,
+      };
+    
+    case 'GO_TO_END':
+      if (state.gameMode !== 'analysis' || !state.loadedGame) return state;
+      return {
+        ...state,
+        currentMoveIndex: state.loadedGame.totalMoves - 1,
+        selectedSquare: null,
+      };
+    
     default:
       return state;
   }
@@ -389,6 +481,84 @@ const getCurrentPosition = (moves: ChessMove[]): BoardPosition => {
       position[move.from] = null;
     }
   });
+  
+  return position;
+};
+
+// 게임 트리에서 특정 인덱스까지의 이동들 가져오기
+const getMovesUpToIndex = (tree: GameTreeNode, moveIndex: number): ChessMove[] => {
+  const moves: ChessMove[] = [];
+  let currentNode = tree;
+  let currentIndex = 0;
+  
+  while (currentIndex <= moveIndex && currentNode.children.length > 0) {
+    currentNode = currentNode.children[0];
+    if (currentNode.move) {
+      moves.push(currentNode.move);
+      currentIndex++;
+    }
+  }
+  
+  return moves;
+};
+
+// 게임 트리에서 특정 이동 인덱스의 보드 위치 계산
+const getPositionAtMoveIndex = (tree: GameTreeNode, moveIndex: number): BoardPosition => {
+  let position = getInitialPosition();
+  
+  if (moveIndex === -1) {
+    // 시작 위치
+    return position;
+  }
+  
+  // 메인라인을 따라 이동 실행
+  let currentNode = tree;
+  let currentIndex = 0;
+  
+  while (currentIndex <= moveIndex && currentNode.children.length > 0) {
+    currentNode = currentNode.children[0]; // 메인라인 (첫 번째 자식)
+    
+    if (currentNode.move) {
+      const move = currentNode.move;
+      
+      if (move.isCastle) {
+        // 캐슬링 처리
+        const piece = position[move.from];
+        if (piece) {
+          const side = squareToCoordinate(move.to)[0] > squareToCoordinate(move.from)[0] ? 'king' : 'queen';
+          const rank = piece.color === 'white' ? '1' : '8';
+          const rookFromSquare = side === 'king' ? 'h' + rank : 'a' + rank;
+          const rookToSquare = side === 'king' ? 'f' + rank : 'd' + rank;
+          
+          position[move.to] = piece;
+          position[move.from] = null;
+          position[rookToSquare] = position[rookFromSquare];
+          position[rookFromSquare] = null;
+        }
+      } else if (move.isEnPassant) {
+        // 앙파상 처리
+        const piece = position[move.from];
+        if (piece) {
+          const captureRank = piece.color === 'white' ? '5' : '4';
+          const captureSquare = move.to[0] + captureRank;
+          
+          position[move.to] = piece;
+          position[move.from] = null;
+          position[captureSquare] = null;
+        }
+      } else {
+        // 일반 이동 (프로모션 포함)
+        let piece = position[move.from];
+        if (piece && move.promotion) {
+          piece = { color: piece.color, type: move.promotion };
+        }
+        position[move.to] = piece;
+        position[move.from] = null;
+      }
+      
+      currentIndex++;
+    }
+  }
   
   return position;
 };
@@ -487,8 +657,45 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'SET_SELECTED_SQUARE', payload: square });
   };
 
-  // 현재 보드 위치 계산
-  const position = getCurrentPosition(gameState.moves);
+  // 새로운 분석 모드 함수들
+  const loadGame = (parsedGame: ParsedGame) => {
+    dispatch({ type: 'LOAD_GAME', payload: parsedGame });
+  };
+
+  const setGameMode = (mode: GameMode) => {
+    dispatch({ type: 'SET_GAME_MODE', payload: mode });
+  };
+
+  const goToMove = (index: number) => {
+    dispatch({ type: 'GO_TO_MOVE', payload: index });
+  };
+
+  const goToNext = () => {
+    dispatch({ type: 'GO_TO_NEXT' });
+  };
+
+  const goToPrevious = () => {
+    dispatch({ type: 'GO_TO_PREVIOUS' });
+  };
+
+  const goToStart = () => {
+    dispatch({ type: 'GO_TO_START' });
+  };
+
+  const goToEnd = () => {
+    dispatch({ type: 'GO_TO_END' });
+  };
+
+  // 현재 보드 위치 계산 (모드에 따라 다르게 처리)
+  const position = React.useMemo(() => {
+    if (gameState.gameMode === 'analysis' && gameState.loadedGame) {
+      // 분석 모드: 로드된 게임의 특정 이동 위치로 이동
+      return getPositionAtMoveIndex(gameState.loadedGame.tree, gameState.currentMoveIndex);
+    } else {
+      // 라이브 모드: 현재 게임 상태
+      return getCurrentPosition(gameState.moves);
+    }
+  }, [gameState.gameMode, gameState.loadedGame, gameState.currentMoveIndex, gameState.moves]);
   
   // 선택된 기물의 가능한 이동 계산
   const possibleMoves = React.useMemo(() => {
@@ -509,12 +716,22 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const isGameOver = gameState.gameStatus === 'checkmate' || gameState.gameStatus === 'stalemate';
   const gameResult = isGameOver ? gameState.headers.Result : null;
   
-  // 마지막 이동 계산
+  // 마지막 이동 계산 (모드에 따라 다르게 처리)
   const lastMove = React.useMemo(() => {
-    if (gameState.moves.length === 0) return null;
-    const lastMoveData = gameState.moves[gameState.moves.length - 1];
-    return { from: lastMoveData.from, to: lastMoveData.to };
-  }, [gameState.moves]);
+    if (gameState.gameMode === 'analysis' && gameState.loadedGame && gameState.currentMoveIndex >= 0) {
+      // 분석 모드: 현재 이동 인덱스의 이동
+      const moves = getMovesUpToIndex(gameState.loadedGame.tree, gameState.currentMoveIndex);
+      if (moves.length === 0) return null;
+      const lastMoveData = moves[moves.length - 1];
+      return { from: lastMoveData.from, to: lastMoveData.to };
+    } else if (gameState.gameMode === 'live') {
+      // 라이브 모드: 현재 게임의 마지막 이동
+      if (gameState.moves.length === 0) return null;
+      const lastMoveData = gameState.moves[gameState.moves.length - 1];
+      return { from: lastMoveData.from, to: lastMoveData.to };
+    }
+    return null;
+  }, [gameState.gameMode, gameState.loadedGame, gameState.currentMoveIndex, gameState.moves]);
 
   // 캡처된 기물 계산
   const capturedPieces = React.useMemo(() => {
@@ -532,7 +749,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
     
     return { white, black };
-  }, [gameState.moves]);
+  }, [gameState.gameMode, gameState.loadedGame, gameState.currentMoveIndex, gameState.moves]);
+
+  // 네비게이션 상태 계산
+  const canGoNext = React.useMemo(() => {
+    if (gameState.gameMode !== 'analysis' || !gameState.loadedGame) return false;
+    return gameState.currentMoveIndex < gameState.loadedGame.totalMoves - 1;
+  }, [gameState.gameMode, gameState.loadedGame, gameState.currentMoveIndex]);
+
+  const canGoPrevious = React.useMemo(() => {
+    if (gameState.gameMode !== 'analysis' || !gameState.loadedGame) return false;
+    return gameState.currentMoveIndex > -1;
+  }, [gameState.gameMode, gameState.loadedGame, gameState.currentMoveIndex]);
   
   const value: GameContextType = {
     gameState,
@@ -547,11 +775,27 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     gameResult,
     pendingPromotion,
     animationState,
+    
+    // 기존 기능
     makeMove,
     setSelectedSquare,
     onAnimationComplete,
     newGame,
     undoMove,
+    
+    // 새로운 분석 모드 기능
+    gameMode: gameState.gameMode,
+    loadedGame: gameState.loadedGame,
+    currentMoveIndex: gameState.currentMoveIndex,
+    canGoNext,
+    canGoPrevious,
+    loadGame,
+    setGameMode,
+    goToMove,
+    goToNext,
+    goToPrevious,
+    goToStart,
+    goToEnd,
   };
   
   return (

@@ -4,8 +4,8 @@ import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
 import { GameProvider, useGame } from './src/context/GameContext';
 import ChessBoard from './src/components/ChessBoard';
-import GameNotation from './src/components/GameNotation';
-import GameControls from './src/components/Controls';
+import { GameNotation, ImportModal } from './src/components/GameNotation';
+import { GameControls, MoveControls } from './src/components/Controls';
 import CapturedPiecesRow from './src/components/CapturedPieces';
 
 // 메인 게임 컴포넌트 (GameProvider 내부)
@@ -18,8 +18,12 @@ const GameScreen: React.FC = () => {
     isWhiteInCheck,
     isBlackInCheck,
     isGameOver,
-    gameResult
+    gameResult,
+    gameMode,
+    loadedGame
   } = useGame();
+  
+  const [showImportModal, setShowImportModal] = React.useState(false);
 
   const handleMove = (from: string, to: string) => {
     const success = makeMove(from, to);
@@ -30,6 +34,10 @@ const GameScreen: React.FC = () => {
 
   // 게임 상태 텍스트 생성
   const getStatusText = () => {
+    if (gameMode === 'analysis' && loadedGame) {
+      return '분석 모드 - 가져온 게임';
+    }
+    
     if (isGameOver) {
       if (gameState.gameStatus === 'checkmate') {
         const winner = gameResult === '1-0' ? '백색' : '흑색';
@@ -47,6 +55,11 @@ const GameScreen: React.FC = () => {
     
     return gameState.currentPlayer === 'white' ? '백 차례' : '흑 차례';
   };
+
+  // 현재 표시할 이동 목록 결정
+  const currentMoves = gameMode === 'analysis' && loadedGame 
+    ? [] // 분석 모드에서는 로드된 게임의 이동을 표시하도록 나중에 구현
+    : gameState.moves;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -83,11 +96,20 @@ const GameScreen: React.FC = () => {
       
       {/* 기보 표시 */}
       <View style={styles.notationContainer}>
-        <GameNotation moves={gameState.moves} />
+        <GameNotation moves={currentMoves} />
       </View>
       
+      {/* 분석 모드 네비게이션 */}
+      <MoveControls />
+      
       {/* 제어 버튼들 */}
-      <GameControls />
+      <GameControls onImportPress={() => setShowImportModal(true)} />
+      
+      {/* Import Modal */}
+      <ImportModal 
+        visible={showImportModal}
+        onDismiss={() => setShowImportModal(false)}
+      />
     </SafeAreaView>
   );
 };

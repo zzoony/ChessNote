@@ -6,8 +6,12 @@ import * as Clipboard from 'expo-clipboard';
 import { useGame } from '@/context/GameContext';
 import { generatePGN } from '@/utils/chessLogic';
 
-const GameControls: React.FC = () => {
-  const { gameState, newGame, undoMove } = useGame();
+interface GameControlsProps {
+  onImportPress?: () => void;
+}
+
+const GameControls: React.FC<GameControlsProps> = ({ onImportPress }) => {
+  const { gameState, newGame, undoMove, gameMode } = useGame();
   
   const handleNewGame = () => {
     if (gameState.moves.length > 0) {
@@ -173,6 +177,15 @@ const GameControls: React.FC = () => {
           공유하기
         </Text>
       </TouchableOpacity>
+      
+      <TouchableOpacity 
+        style={[styles.button, styles.importButton]}
+        onPress={onImportPress}
+      >
+        <Text style={styles.buttonText}>
+          {gameMode === 'analysis' ? '분석 모드' : '가져오기'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -208,6 +221,9 @@ const styles = StyleSheet.create({
   },
   shareButton: {
     backgroundColor: '#2196F3', // 파란색
+  },
+  importButton: {
+    backgroundColor: '#9C27B0', // 보라색
   },
   buttonDisabled: {
     backgroundColor: '#555',

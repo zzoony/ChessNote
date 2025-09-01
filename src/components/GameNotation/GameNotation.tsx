@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ChessMove } from '@/types';
+import { useGame } from '@/context/GameContext';
 
 interface GameNotationProps {
   moves: ChessMove[];
@@ -12,6 +13,7 @@ const GameNotation: React.FC<GameNotationProps> = ({
   title = '기보' 
 }) => {
   const scrollViewRef = useRef<ScrollView>(null);
+  const { gameMode, currentMoveIndex, goToMove } = useGame();
 
   // 새로운 이동이 있을 때마다 자동 스크롤
   useEffect(() => {
@@ -43,11 +45,25 @@ const GameNotation: React.FC<GameNotationProps> = ({
 
   const formattedMoves = formatMoves();
 
+  // 이동 클릭 핸들러
+  const handleMoveClick = (moveIndex: number) => {
+    if (gameMode === 'analysis') {
+      goToMove(moveIndex);
+    }
+  };
+
+  // 현재 선택된 이동인지 확인
+  const isCurrentMove = (moveIndex: number) => {
+    return gameMode === 'analysis' && currentMoveIndex === moveIndex;
+  };
+
   return (
     <View style={styles.container}>
       {/* 제목 */}
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>
+          {title} {gameMode === 'analysis' && '(분석 모드)'}
+        </Text>
         <Text style={styles.moveCount}>
           {moves.length}수 진행
         </Text>
@@ -68,13 +84,40 @@ const GameNotation: React.FC<GameNotationProps> = ({
             <View key={index} style={styles.moveRow}>
               <Text style={styles.moveNumber}>{move.number}.</Text>
               <View style={styles.movesContainer}>
-                <Text style={[styles.move, styles.whiteMove]}>
-                  {move.white}
-                </Text>
-                {move.black && (
-                  <Text style={[styles.move, styles.blackMove]}>
-                    {move.black}
+                <TouchableOpacity
+                  onPress={() => handleMoveClick(index * 2)}
+                  disabled={gameMode !== 'analysis'}
+                  style={[
+                    styles.moveButton,
+                    isCurrentMove(index * 2) && styles.currentMoveButton
+                  ]}
+                >
+                  <Text style={[
+                    styles.move, 
+                    styles.whiteMove,
+                    isCurrentMove(index * 2) && styles.currentMoveText
+                  ]}>
+                    {move.white}
                   </Text>
+                </TouchableOpacity>
+                
+                {move.black && (
+                  <TouchableOpacity
+                    onPress={() => handleMoveClick(index * 2 + 1)}
+                    disabled={gameMode !== 'analysis'}
+                    style={[
+                      styles.moveButton,
+                      isCurrentMove(index * 2 + 1) && styles.currentMoveButton
+                    ]}
+                  >
+                    <Text style={[
+                      styles.move, 
+                      styles.blackMove,
+                      isCurrentMove(index * 2 + 1) && styles.currentMoveText
+                    ]}>
+                      {move.black}
+                    </Text>
+                  </TouchableOpacity>
                 )}
               </View>
             </View>
@@ -155,15 +198,25 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
   },
+  moveButton: {
+    marginRight: 10,
+  },
   move: {
     fontSize: 16,
     fontFamily: 'monospace',
     paddingHorizontal: 8,
     paddingVertical: 2,
-    marginRight: 10,
     borderRadius: 4,
     minWidth: 50,
     textAlign: 'center',
+  },
+  currentMoveButton: {
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    borderRadius: 6,
+  },
+  currentMoveText: {
+    fontWeight: 'bold',
   },
   whiteMove: {
     color: '#000000',
