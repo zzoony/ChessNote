@@ -154,14 +154,29 @@ const GameNotation: React.FC<GameNotationProps> = ({
         )}
         
         {/* 최근 이동 하이라이트 */}
-        {moves.length > 0 && (
-          <View style={styles.lastMoveContainer}>
-            <Text style={styles.lastMoveLabel}>마지막 이동:</Text>
-            <Text style={styles.lastMove}>
-              {moves[moves.length - 1].san}
-            </Text>
-          </View>
-        )}
+        {(() => {
+          // 분석 모드에서는 currentMoveIndex에 해당하는 이동 표시
+          let lastMoveText = '';
+          if (gameMode === 'analysis' && loadedGame) {
+            if (currentMoveIndex >= 0 && currentMoveIndex < moves.length) {
+              lastMoveText = moves[currentMoveIndex].san;
+            }
+          } else {
+            // 라이브 모드에서는 마지막 이동 표시
+            if (moves.length > 0) {
+              lastMoveText = moves[moves.length - 1].san;
+            }
+          }
+          
+          return lastMoveText ? (
+            <View style={styles.lastMoveContainer}>
+              <Text style={styles.lastMoveLabel}>마지막 이동:</Text>
+              <Text style={styles.lastMove}>
+                {lastMoveText}
+              </Text>
+            </View>
+          ) : null;
+        })()}
       </ScrollView>
       
       {/* 하단 정보 */}

@@ -502,64 +502,123 @@ const getMovesUpToIndex = (tree: GameTreeNode, moveIndex: number): ChessMove[] =
   return moves;
 };
 
-// 게임 트리에서 특정 이동 인덱스의 보드 위치 계산
-const getPositionAtMoveIndex = (tree: GameTreeNode, moveIndex: number): BoardPosition => {
-  let position = getInitialPosition();
+// SAN을 실제 이동으로 변환하는 간단한 파서
+const parseSANMove = (san: string, position: BoardPosition, turn: 'white' | 'black'): {from: string, to: string} | null => {
+  console.log(`SAN 파싱 시도: ${san}, turn: ${turn}`);
   
-  if (moveIndex === -1) {
-    // 시작 위치
-    return position;
+  // 캐슬링 처리
+  if (san === 'O-O') {
+    const rank = turn === 'white' ? '1' : '8';
+    return { from: `e${rank}`, to: `g${rank}` };
+  }
+  if (san === 'O-O-O') {
+    const rank = turn === 'white' ? '1' : '8';
+    return { from: `e${rank}`, to: `c${rank}` };
   }
   
-  // 메인라인을 따라 이동 실행
-  let currentNode = tree;
-  let currentIndex = 0;
+  // 체크/체크메이트 표시 제거
+  const cleanSan = san.replace(/[+#]$/, '');
   
-  while (currentIndex <= moveIndex && currentNode.children.length > 0) {
-    currentNode = currentNode.children[0]; // 메인라인 (첫 번째 자식)
-    
-    if (currentNode.move) {
-      const move = currentNode.move;
-      
-      if (move.isCastle) {
-        // 캐슬링 처리
-        const piece = position[move.from];
-        if (piece) {
-          const side = squareToCoordinate(move.to)[0] > squareToCoordinate(move.from)[0] ? 'king' : 'queen';
-          const rank = piece.color === 'white' ? '1' : '8';
-          const rookFromSquare = side === 'king' ? 'h' + rank : 'a' + rank;
-          const rookToSquare = side === 'king' ? 'f' + rank : 'd' + rank;
-          
-          position[move.to] = piece;
-          position[move.from] = null;
-          position[rookToSquare] = position[rookFromSquare];
-          position[rookFromSquare] = null;
-        }
-      } else if (move.isEnPassant) {
-        // 앙파상 처리
-        const piece = position[move.from];
-        if (piece) {
-          const captureRank = piece.color === 'white' ? '5' : '4';
-          const captureSquare = move.to[0] + captureRank;
-          
-          position[move.to] = piece;
-          position[move.from] = null;
-          position[captureSquare] = null;
-        }
-      } else {
-        // 일반 이동 (프로모션 포함)
-        let piece = position[move.from];
-        if (piece && move.promotion) {
-          piece = { color: piece.color, type: move.promotion };
-        }
-        position[move.to] = piece;
-        position[move.from] = null;
-      }
-      
-      currentIndex++;
+  // 기물 타입 결정
+  let pieceType: ChessPiece['type'] = 'pawn';
+  let moveStr = cleanSan;
+  
+  if (/^[KQRBN]/.test(cleanSan)) {
+    const pieceMap = { K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight' };
+    pieceType = pieceMap[cleanSan[0] as keyof typeof pieceMap];
+    moveStr = cleanSan.slice(1);
+  }
+  
+  // 목적지 칸 추출 (마지막 2자리가 일반적으로 목적지)
+  const destinationMatch = moveStr.match(/([a-h][1-8])(?:=[QRBN])?$/);
+  if (!destinationMatch) {
+    console.log(`목적지 파싱 실패: ${moveStr}`);
+    return null;
+  }
+  
+  const to = destinationMatch[1];
+  
+  // 해당 기물 타입과 색깔을 가진 모든 기물 찾기
+  const candidatePieces: string[] = [];
+  for (const square in position) {
+    const piece = position[square];
+    if (piece && piece.type === pieceType && piece.color === turn) {
+      candidatePieces.push(square);
     }
   }
   
+  console.log(`${pieceType} 후보들:`, candidatePieces);
+  
+  // 유효한 이동 찾기
+  for (const from of candidatePieces) {
+    if (isValidMove(from, to, position, true, {
+      whiteKingSide: true, whiteQueenSide: true,
+      blackKingSide: true, blackQueenSide: true
+    }, null)) {
+      console.log(`유효한 이동 발견: ${from} -> ${to}`);
+      return { from, to };
+    }
+  }
+  
+  console.log(`유효한 이동을 찾지 못했습니다: ${san}`);
+  return null;
+};
+
+// 게임 트리에서 특정 이동 인덱스의 보드 위치 계산
+const getPositionAtMoveIndex = (tree: GameTreeNode, moveIndex: number): BoardPosition => {
+  console.log('getPositionAtMoveIndex 호출됨, moveIndex:', moveIndex);
+  
+  if (moveIndex === -1) {
+    // 시작 위치
+    console.log('시작 위치 반환');
+    return getInitialPosition();
+  }
+  
+  let position = getInitialPosition();
+  let currentNode = tree;
+  let currentIndex = 0;
+  let moveNumber = 0;
+  
+  while (currentIndex <= moveIndex && currentNode.children.length > 0) {
+    currentNode = currentNode.children[0]; // 메인라인
+    
+    if (currentNode.move && currentNode.san) {
+      console.log(`${currentIndex}번째 이동 실행:`, currentNode.san);
+      
+      const turn = moveNumber % 2 === 0 ? 'white' : 'black';
+      const moveCoords = parseSANMove(currentNode.san, position, turn);
+      
+      if (moveCoords) {
+        const { from, to } = moveCoords;
+        console.log(`이동 좌표: ${from} -> ${to}`);
+        
+        // executeSpecialMove를 사용해서 이동 실행
+        try {
+          const { newPosition } = executeSpecialMove(
+            from,
+            to,
+            position,
+            {
+              whiteKingSide: true, whiteQueenSide: true,
+              blackKingSide: true, blackQueenSide: true
+            },
+            null
+          );
+          position = newPosition;
+          console.log(`이동 성공: ${currentNode.san}`);
+        } catch (error) {
+          console.log(`이동 실행 실패: ${currentNode.san}`, error);
+        }
+      } else {
+        console.log(`좌표 파싱 실패: ${currentNode.san}`);
+      }
+      
+      currentIndex++;
+      moveNumber++;
+    }
+  }
+  
+  console.log(`최종 position (${currentIndex}개 이동 실행됨):`, position);
   return position;
 };
 
@@ -671,18 +730,22 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const goToNext = () => {
+    console.log('goToNext 클릭, 현재 인덱스:', gameState.currentMoveIndex);
     dispatch({ type: 'GO_TO_NEXT' });
   };
 
   const goToPrevious = () => {
+    console.log('goToPrevious 클릭, 현재 인덱스:', gameState.currentMoveIndex);
     dispatch({ type: 'GO_TO_PREVIOUS' });
   };
 
   const goToStart = () => {
+    console.log('goToStart 클릭');
     dispatch({ type: 'GO_TO_START' });
   };
 
   const goToEnd = () => {
+    console.log('goToEnd 클릭');
     dispatch({ type: 'GO_TO_END' });
   };
 
@@ -690,7 +753,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const position = React.useMemo(() => {
     if (gameState.gameMode === 'analysis' && gameState.loadedGame) {
       // 분석 모드: 로드된 게임의 특정 이동 위치로 이동
-      return getPositionAtMoveIndex(gameState.loadedGame.tree, gameState.currentMoveIndex);
+      console.log('분석 모드 position 계산:', gameState.currentMoveIndex);
+      const newPosition = getPositionAtMoveIndex(gameState.loadedGame.tree, gameState.currentMoveIndex);
+      console.log('계산된 position:', newPosition);
+      return newPosition;
     } else {
       // 라이브 모드: 현재 게임 상태
       return getCurrentPosition(gameState.moves);

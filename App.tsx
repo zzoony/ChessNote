@@ -72,12 +72,14 @@ const GameScreen: React.FC = () => {
   const currentMoves = React.useMemo(() => {
     if (gameMode === 'analysis' && loadedGame) {
       // 분석 모드: 로드된 게임의 이동들을 평면 배열로 변환
-      return getMovesFromTree(loadedGame.tree);
+      const allMoves = getMovesFromTree(loadedGame.tree);
+      // currentMoveIndex까지만 반환 (네비게이션에 따라 표시되는 이동 제한)
+      return allMoves.slice(0, currentMoveIndex + 1);
     } else {
       // 라이브 모드: 현재 게임 상태
       return gameState.moves;
     }
-  }, [gameMode, loadedGame, gameState.moves]);
+  }, [gameMode, loadedGame, gameState.moves, currentMoveIndex]);
 
 
   return (
