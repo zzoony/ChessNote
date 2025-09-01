@@ -3,7 +3,7 @@ import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import Square from './Square';
 import PromotionDialog from './PromotionDialog';
 import AnimatedPiece from './AnimatedPiece';
-import { ChessPiece, PieceColor, BoardPosition } from '@/types';
+import { ChessPiece, BoardPosition } from '@/types';
 import { useGame } from '@/context/GameContext';
 
 const { width: screenWidth } = Dimensions.get('window');
