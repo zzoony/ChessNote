@@ -33,7 +33,9 @@ const AnimatedPiece: React.FC<AnimatedPieceProps> = ({
   onAnimationComplete,
   delay = 0,
 }) => {
-  const positionAnim = useRef(new Animated.ValueXY()).current;
+  // 초기 위치를 즉시 설정하여 A8에 나타나는 문제 해결
+  const fromPosition = squareToPosition(fromSquare, squareSize);
+  const positionAnim = useRef(new Animated.ValueXY(fromPosition)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const shadowOpacityAnim = useRef(new Animated.Value(0)).current;
   
@@ -64,16 +66,9 @@ const AnimatedPiece: React.FC<AnimatedPieceProps> = ({
   };
 
   useEffect(() => {
-    const fromPosition = squareToPosition(fromSquare, squareSize);
     const toPosition = squareToPosition(toSquare, squareSize);
     
-    // 초기값 설정을 requestAnimationFrame으로 지연
-    requestAnimationFrame(() => {
-      positionAnim.setValue(fromPosition);
-      scaleAnim.setValue(1);
-      shadowOpacityAnim.setValue(0);
-    });
-    
+    // 초기값은 이미 설정되었으므로 애니메이션만 시작
     // 지연 시간 후 애니메이션 시작
     const timer = setTimeout(() => {
       Animated.parallel([

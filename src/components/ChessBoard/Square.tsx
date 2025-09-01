@@ -2,6 +2,22 @@ import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, StyleSheet, Image, View, Animated } from 'react-native';
 import { ChessPiece } from '@/types';
 
+// 기물 이미지를 컴포넌트 외부에서 미리 로드 (성능 최적화)
+const pieceImages: { [key: string]: any } = {
+  'White-King': require('../../../assets/pieces/White-King.png'),
+  'White-Queen': require('../../../assets/pieces/White-Queen.png'),
+  'White-Rook': require('../../../assets/pieces/White-Rook.png'),
+  'White-Bishop': require('../../../assets/pieces/White-Bishop.png'),
+  'White-Knight': require('../../../assets/pieces/White-Knight.png'),
+  'White-Pawn': require('../../../assets/pieces/White-Pawn.png'),
+  'Black-King': require('../../../assets/pieces/Black-King.png'),
+  'Black-Queen': require('../../../assets/pieces/Black-Queen.png'),
+  'Black-Rook': require('../../../assets/pieces/Black-Rook.png'),
+  'Black-Bishop': require('../../../assets/pieces/Black-Bishop.png'),
+  'Black-Knight': require('../../../assets/pieces/Black-Knight.png'),
+  'Black-Pawn': require('../../../assets/pieces/Black-Pawn.png'),
+};
+
 interface SquareProps {
   square: string; // 'a1', 'b2' 등
   piece: ChessPiece | null;
@@ -50,22 +66,6 @@ const Square: React.FC<SquareProps> = ({
     const type = piece.type.charAt(0).toUpperCase() + piece.type.slice(1);
     const imageName = `${color}-${type}`;
     
-    // React Native에서 동적 require를 위한 mapping
-    const pieceImages: { [key: string]: any } = {
-      'White-King': require('../../../assets/pieces/White-King.png'),
-      'White-Queen': require('../../../assets/pieces/White-Queen.png'),
-      'White-Rook': require('../../../assets/pieces/White-Rook.png'),
-      'White-Bishop': require('../../../assets/pieces/White-Bishop.png'),
-      'White-Knight': require('../../../assets/pieces/White-Knight.png'),
-      'White-Pawn': require('../../../assets/pieces/White-Pawn.png'),
-      'Black-King': require('../../../assets/pieces/Black-King.png'),
-      'Black-Queen': require('../../../assets/pieces/Black-Queen.png'),
-      'Black-Rook': require('../../../assets/pieces/Black-Rook.png'),
-      'Black-Bishop': require('../../../assets/pieces/Black-Bishop.png'),
-      'Black-Knight': require('../../../assets/pieces/Black-Knight.png'),
-      'Black-Pawn': require('../../../assets/pieces/Black-Pawn.png'),
-    };
-
     return pieceImages[imageName];
   };
 
@@ -139,4 +139,16 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Square;
+export default React.memo(Square, (prevProps, nextProps) => {
+  // 성능 최적화를 위한 메모이제이션
+  return (
+    prevProps.piece === nextProps.piece &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.isPossibleMove === nextProps.isPossibleMove &&
+    prevProps.isLastMoveSquare === nextProps.isLastMoveSquare &&
+    prevProps.isLight === nextProps.isLight &&
+    prevProps.size === nextProps.size &&
+    prevProps.animatingPiece === nextProps.animatingPiece &&
+    prevProps.isAnimationTarget === nextProps.isAnimationTarget
+  );
+});
