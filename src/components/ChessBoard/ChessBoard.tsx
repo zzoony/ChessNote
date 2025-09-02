@@ -30,7 +30,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
     gameResult,
     pendingPromotion,
     animationState,
-    onAnimationComplete
+    onAnimationComplete,
+    gameMode
   } = useGame();
   const currentPosition = position || contextPosition;
 
@@ -181,7 +182,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ position, onMove }) => {
                 boardSize={BOARD_SIZE}
                 squareSize={SQUARE_SIZE}
                 onAnimationComplete={onAnimationComplete}
-                delay={index * 100} // 여러 기물이 이동할 때 순서대로 애니메이션
+                delay={index * (gameMode === 'analysis' ? 70 : 100)} // 분석 모드에서는 30% 빠른 지연
+                isAnalysisMode={gameMode === 'analysis'}
               />
             ))}
           </View>

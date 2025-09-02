@@ -10,6 +10,7 @@ interface AnimatedPieceProps {
   squareSize: number;
   onAnimationComplete: () => void;
   delay?: number; // 캐슬링 등에서 여러 기물이 동시에 이동할 때 지연 시간
+  isAnalysisMode?: boolean; // 분석 모드에서 더 빠른 애니메이션
 }
 
 // 체스 좌표를 픽셀 위치로 변환 (칸의 중앙 기준)
@@ -32,6 +33,7 @@ const AnimatedPiece: React.FC<AnimatedPieceProps> = ({
   squareSize,
   onAnimationComplete,
   delay = 0,
+  isAnalysisMode = false,
 }) => {
   // 초기 위치를 즉시 설정하여 A8에 나타나는 문제 해결
   const fromPosition = squareToPosition(fromSquare, squareSize);
@@ -72,43 +74,49 @@ const AnimatedPiece: React.FC<AnimatedPieceProps> = ({
     // 지연 시간 후 애니메이션 시작
     const timer = setTimeout(() => {
       Animated.parallel([
-        // 위치 이동 애니메이션 - 이동 거리에 따라 속도 조절 (20% 더 빠르게)
+        // 위치 이동 애니메이션 - 분석 모드에서는 30% 더 빠르게
         Animated.timing(positionAnim, {
           toValue: toPosition,
-          duration: Math.max(200, Math.min(320, 
-            Math.sqrt(Math.pow(toPosition.x - fromPosition.x, 2) + Math.pow(toPosition.y - fromPosition.y, 2)) * 1.44
-          )),
+          duration: Math.max(
+            isAnalysisMode ? 140 : 200, 
+            Math.min(
+              isAnalysisMode ? 224 : 320, 
+              Math.sqrt(Math.pow(toPosition.x - fromPosition.x, 2) + Math.pow(toPosition.y - fromPosition.y, 2)) * (isAnalysisMode ? 1.0 : 1.44)
+            )
+          ),
           useNativeDriver: true,
         }),
-        // 그림자 효과 (이동 시 나타나고 끝에서 사라짐, 20% 빠르게)
+        // 그림자 효과 (분석 모드에서는 30% 빠르게)
         Animated.sequence([
           Animated.timing(shadowOpacityAnim, {
             toValue: 0.3,
-            duration: 80,
+            duration: isAnalysisMode ? 56 : 80, // 30% 빠르게
             useNativeDriver: true,
           }),
           Animated.timing(shadowOpacityAnim, {
             toValue: 0,
-            duration: 160,
+            duration: isAnalysisMode ? 112 : 160, // 30% 빠르게
             useNativeDriver: true,
           }),
         ]),
-        // 살짝 커졌다가 작아지는 효과 (20% 빠르게)
+        // 살짝 커졌다가 작아지는 효과 (분석 모드에서는 30% 빠르게)
         Animated.sequence([
           Animated.timing(scaleAnim, {
             toValue: 1.1,
-            duration: 80,
+            duration: isAnalysisMode ? 56 : 80, // 30% 빠르게
             useNativeDriver: true,
           }),
           Animated.timing(scaleAnim, {
             toValue: 1,
-            duration: 240,
+            duration: isAnalysisMode ? 168 : 240, // 30% 빠르게
             useNativeDriver: true,
           }),
         ]),
       ]).start(() => {
-        // 애니메이션 완료 콜백
-        onAnimationComplete();
+        // 애니메이션 완료 콜백 - useInsertionEffect 경고 방지를 위해 추가 지연
+        setTimeout(() => {
+          onAnimationComplete();
+        }, 10);
       });
     }, delay);
     

@@ -28,8 +28,8 @@ const WriteModeScreen: React.FC = () => {
 
   // WriteModeScreen 진입 시 자동으로 새 게임 시작
   useEffect(() => {
-    if (gameMode !== 'write') {
-      setGameMode('write');
+    if (gameMode !== 'live') {
+      setGameMode('live');
     }
     newGame();
   }, []);

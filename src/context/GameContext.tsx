@@ -630,7 +630,6 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 // Provider 컴포넌트
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [gameState, dispatch] = useReducer(gameReducer, initialExtendedGameState);
-  const [animationState, setAnimationState] = React.useState<AnimationState>(initialAnimationState);
   const [pendingPromotion, setPendingPromotion] = React.useState<{ from: string; to: string } | null>(null);
   
   const makeMove = (from: string, to: string, promotion?: 'queen' | 'rook' | 'bishop' | 'knight'): boolean => {
@@ -667,12 +666,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
     
-    // 애니메이션 시작
-    setAnimationState({
-      isAnimating: true,
-      animatingMoves,
-      completedAnimations: 0,
-    });
+    // 애니메이션 시작 (reducer를 통해 상태 관리)
+    dispatch({ type: 'START_MOVE_ANIMATION', payload: { moves: animatingMoves } });
     
     // 애니메이션 완료 후 이동 처리
     const animationDuration = 320; // AnimatedPiece의 최대 지에 시간과 맞춤 (20% 빠르게 조정)
@@ -683,24 +678,139 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         dispatch({ type: 'MAKE_MOVE', payload: { from, to, promotion } });
         
         // 애니메이션 상태 리셋
-        setAnimationState(initialAnimationState);
+        dispatch({ type: 'COMPLETE_MOVE_ANIMATION' });
       }, animationDuration + 50);
     });
     
     return true;
   };
+
+  // 분석 모드에서 특정 이동 인덱스로 애니메이션하며 이동
+  const animateToMoveIndex = (targetIndex: number) => {
+    console.log('animateToMoveIndex 호출됨, targetIndex:', targetIndex);
+    
+    if (gameState.gameMode !== 'analysis' || !gameState.loadedGame) {
+      console.log('분석 모드가 아니거나 게임이 로드되지 않음');
+      return;
+    }
+    
+    const animatingMoves: AnimatingMove[] = [];
+    
+    // 앞으로 가는 경우와 뒤로 가는 경우 구분
+    const isMovingForward = targetIndex > gameState.currentMoveIndex;
+    console.log('이동 방향:', isMovingForward ? '앞으로' : '뒤로');
+    
+    if (isMovingForward) {
+      // 앞으로 가는 경우: 특정 이동의 SAN을 직접 파싱
+      let currentNode = gameState.loadedGame.tree;
+      let moveIndex = 0;
+      
+      // 타겟 인덱스까지 이동
+      while (moveIndex <= gameState.currentMoveIndex && currentNode.children.length > 0) {
+        currentNode = currentNode.children[0];
+        moveIndex++;
+      }
+      
+      // 다음 이동 노드
+      if (currentNode.children.length > 0) {
+        const nextNode = currentNode.children[0];
+        if (nextNode.san) {
+          console.log('다음 이동 SAN:', nextNode.san);
+          const turn = (gameState.currentMoveIndex + 1) % 2 === 0 ? 'white' : 'black';
+          const currentPosition = getPositionAtMoveIndex(gameState.loadedGame.tree, gameState.currentMoveIndex);
+          const moveCoords = parseSANMove(nextNode.san, currentPosition, turn);
+          
+          if (moveCoords) {
+            const piece = currentPosition[moveCoords.from];
+            if (piece) {
+              console.log('애니메이션 기물 찾음:', moveCoords.from, '->', moveCoords.to, piece);
+              animatingMoves.push({
+                from: moveCoords.from,
+                to: moveCoords.to,
+                piece: piece
+              });
+              
+              // 캐슬링 처리
+              if (nextNode.move?.isCastle) {
+                const side = squareToCoordinate(moveCoords.to)[0] > squareToCoordinate(moveCoords.from)[0] ? 'king' : 'queen';
+                const rank = piece.color === 'white' ? '1' : '8';
+                const rookFromSquare = side === 'king' ? 'h' + rank : 'a' + rank;
+                const rookToSquare = side === 'king' ? 'f' + rank : 'd' + rank;
+                const rook = currentPosition[rookFromSquare];
+                
+                if (rook) {
+                  animatingMoves.push({ from: rookFromSquare, to: rookToSquare, piece: rook });
+                }
+              }
+            }
+          }
+        }
+      }
+    } else {
+      // 뒤로 가는 경우: 현재 이동을 역방향으로 애니메이션
+      if (gameState.currentMoveIndex >= 0) {
+        const moves = getMovesUpToIndex(gameState.loadedGame.tree, gameState.currentMoveIndex);
+        
+        if (moves.length > 0) {
+          const currentMove = moves[moves.length - 1];
+          const currentPosition = getPositionAtMoveIndex(gameState.loadedGame.tree, gameState.currentMoveIndex);
+          const piece = currentPosition[currentMove.to];
+          console.log('역방향 애니메이션:', currentMove.to, '->', currentMove.from, piece);
+          
+          if (piece) {
+            animatingMoves.push({
+              from: currentMove.to,
+              to: currentMove.from,
+              piece: piece
+            });
+            
+            // 캐슬링 역방향 처리
+            if (currentMove.isCastle) {
+              const side = squareToCoordinate(currentMove.to)[0] > squareToCoordinate(currentMove.from)[0] ? 'king' : 'queen';
+              const rank = piece.color === 'white' ? '1' : '8';
+              const rookFromSquare = side === 'king' ? 'f' + rank : 'd' + rank;
+              const rookToSquare = side === 'king' ? 'h' + rank : 'a' + rank;
+              const rook = currentPosition[rookFromSquare];
+              
+              if (rook) {
+                animatingMoves.push({ from: rookFromSquare, to: rookToSquare, piece: rook });
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    console.log('최종 애니메이션 기물 수:', animatingMoves.length);
+    
+    // 애니메이션할 기물이 있는 경우에만 애니메이션 실행
+    if (animatingMoves.length > 0) {
+      console.log('분석 모드 애니메이션 시작:', animatingMoves);
+      
+      // 애니메이션 시작 (reducer를 통해 상태 관리)
+      dispatch({ type: 'START_MOVE_ANIMATION', payload: { moves: animatingMoves } });
+      
+      // 애니메이션 완료 후 인덱스 업데이트 (분석 모드는 30% 빠르게)
+      const animationDuration = 224; // 320 * 0.7 = 224ms
+      
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          dispatch({ type: 'GO_TO_MOVE', payload: targetIndex });
+          dispatch({ type: 'COMPLETE_MOVE_ANIMATION' });
+        }, animationDuration + 50);
+      });
+    } else {
+      console.log('애니메이션할 기물이 없어서 즉시 이동');
+      // 애니메이션할 기물이 없으면 즉시 이동
+      dispatch({ type: 'GO_TO_MOVE', payload: targetIndex });
+    }
+  };
   
   const onAnimationComplete = () => {
-    setAnimationState(prev => {
-      const newCompletedCount = prev.completedAnimations + 1;
-      if (newCompletedCount >= prev.animatingMoves.length) {
-        // 모든 애니메이션 완료 - 상태는 setTimeout에서 처리
-        return prev;
-      }
-      return {
-        ...prev,
-        completedAnimations: newCompletedCount,
-      };
+    console.log('애니메이션 피스 완료 콜백');
+    // useInsertionEffect 경고를 방지하기 위해 비동기 처리
+    requestAnimationFrame(() => {
+      dispatch({ type: 'ANIMATION_PIECE_COMPLETE' });
     });
   };
   
@@ -733,22 +843,57 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const goToNext = () => {
     console.log('goToNext 클릭, 현재 인덱스:', gameState.currentMoveIndex);
-    dispatch({ type: 'GO_TO_NEXT' });
+    console.log('gameMode:', gameState.gameMode, 'loadedGame:', !!gameState.loadedGame);
+    
+    if (gameState.gameMode === 'analysis' && gameState.loadedGame) {
+      const nextMoveIndex = Math.min(gameState.currentMoveIndex + 1, gameState.loadedGame.totalMoves - 1);
+      console.log('nextMoveIndex:', nextMoveIndex, 'currentMoveIndex:', gameState.currentMoveIndex);
+      if (nextMoveIndex > gameState.currentMoveIndex) {
+        console.log('애니메이션 호출 시도:', nextMoveIndex);
+        animateToMoveIndex(nextMoveIndex);
+      }
+    } else {
+      console.log('기본 GO_TO_NEXT 디스패치');
+      dispatch({ type: 'GO_TO_NEXT' });
+    }
   };
 
   const goToPrevious = () => {
     console.log('goToPrevious 클릭, 현재 인덱스:', gameState.currentMoveIndex);
-    dispatch({ type: 'GO_TO_PREVIOUS' });
+    
+    if (gameState.gameMode === 'analysis' && gameState.loadedGame) {
+      const prevMoveIndex = Math.max(gameState.currentMoveIndex - 1, -1);
+      if (prevMoveIndex < gameState.currentMoveIndex) {
+        animateToMoveIndex(prevMoveIndex);
+      }
+    } else {
+      dispatch({ type: 'GO_TO_PREVIOUS' });
+    }
   };
 
   const goToStart = () => {
     console.log('goToStart 클릭');
-    dispatch({ type: 'GO_TO_START' });
+    
+    if (gameState.gameMode === 'analysis' && gameState.loadedGame) {
+      if (gameState.currentMoveIndex > -1) {
+        animateToMoveIndex(-1);
+      }
+    } else {
+      dispatch({ type: 'GO_TO_START' });
+    }
   };
 
   const goToEnd = () => {
     console.log('goToEnd 클릭');
-    dispatch({ type: 'GO_TO_END' });
+    
+    if (gameState.gameMode === 'analysis' && gameState.loadedGame) {
+      const endMoveIndex = gameState.loadedGame.totalMoves - 1;
+      if (endMoveIndex > gameState.currentMoveIndex) {
+        animateToMoveIndex(endMoveIndex);
+      }
+    } else {
+      dispatch({ type: 'GO_TO_END' });
+    }
   };
 
   // 현재 보드 위치 계산 (모드에 따라 다르게 처리)
@@ -842,7 +987,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isGameOver,
     gameResult,
     pendingPromotion,
-    animationState,
+    animationState: gameState.animationState,
     
     // 기존 기능
     makeMove,
