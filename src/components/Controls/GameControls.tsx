@@ -178,14 +178,6 @@ const GameControls: React.FC<GameControlsProps> = ({ onImportPress }) => {
         </Text>
       </TouchableOpacity>
       
-      <TouchableOpacity 
-        style={[styles.button, styles.importButton]}
-        onPress={onImportPress}
-      >
-        <Text style={styles.buttonText}>
-          {gameMode === 'analysis' ? '분석 모드' : '가져오기'}
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -221,9 +213,6 @@ const styles = StyleSheet.create({
   },
   shareButton: {
     backgroundColor: '#2196F3', // 파란색
-  },
-  importButton: {
-    backgroundColor: '#9C27B0', // 보라색
   },
   buttonDisabled: {
     backgroundColor: '#555',

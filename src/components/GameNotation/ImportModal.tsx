@@ -11,6 +11,7 @@ import {
   Divider
 } from 'react-native-paper';
 import * as FileSystem from 'expo-file-system';
+import * as Clipboard from 'expo-clipboard';
 import { useGame } from '@/context/GameContext';
 import { parsePGNString } from '@/utils/pgnParser';
 
@@ -53,41 +54,25 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onDismiss }) => {
   };
 
   // 클립보드에서 PGN 가져오기
-  const handlePasteFromClipboard = () => {
-    Alert.alert(
-      '클립보드', 
-      '클립보드에서 PGN을 가져오시겠습니까?',
-      [
-        { text: '취소', style: 'cancel' },
-        { 
-          text: '가져오기', 
-          onPress: () => {
-            // 실제로는 expo-clipboard를 사용해야 하지만 
-            // 현재는 텍스트 입력을 통해 진행
-            Alert.alert('안내', 'PGN 텍스트를 아래 입력창에 직접 붙여넣어 주세요.');
-          }
-        }
-      ]
-    );
+  const handlePasteFromClipboard = async () => {
+    try {
+      const clipboardText = await Clipboard.getStringAsync();
+      if (clipboardText.trim()) {
+        setPgnText(clipboardText.trim());
+        Alert.alert('성공', '클립보드에서 PGN을 가져왔습니다.');
+      } else {
+        Alert.alert('오류', '클립보드에 텍스트가 없습니다.');
+      }
+    } catch (error) {
+      console.error('클립보드 읽기 오류:', error);
+      Alert.alert('오류', '클립보드에서 텍스트를 가져올 수 없습니다.');
+    }
   };
 
   // 라이브 모드로 돌아가기
   const handleBackToLiveMode = () => {
     setGameMode('live');
     onDismiss();
-  };
-
-  // 예제 PGN 삽입
-  const handleInsertExample = () => {
-    const examplePGN = `[Event "Example Game"]
-[Site "ChessNote"]
-[Date "2025.09.01"]
-[White "Player 1"]
-[Black "Player 2"]
-[Result "1-0"]
-
-1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Bb7 10. d4 Re8 11. Nbd2 Bf8 12. a4 h6 13. Bc2 exd4 14. cxd4 Nb4 15. Bb1 c5 16. d5 Nd7 17. Ra3 f5 18. Rae3 Nf6 19. Nh4 fxe4 20. Nxe4 Nxe4 21. Bxe4 Bxd5 22. Bxd5+ Nxd5 23. Re7 1-0`;
-    setPgnText(examplePGN);
   };
 
   return (
@@ -100,9 +85,9 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onDismiss }) => {
         <Card style={styles.card}>
           <Card.Title 
             title="게임 가져오기" 
-            subtitle="PGN 파일 또는 텍스트를 가져와서 분석하세요"
-            left={(props) => <IconButton {...props} icon="file-import" />}
-            right={(props) => <IconButton {...props} icon="close" onPress={onDismiss} />}
+            titleStyle={{ color: '#ffffff' }}
+            left={(props) => <IconButton {...props} icon="file-import" iconColor="#ffffff" />}
+            right={(props) => <IconButton {...props} icon="close" iconColor="#ffffff" onPress={onDismiss} />}
           />
           
           <Card.Content>
@@ -117,16 +102,6 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onDismiss }) => {
               >
                 클립보드에서 가져오기
               </Button>
-              
-              <Button
-                mode="outlined"
-                icon="lightbulb"
-                onPress={handleInsertExample}
-                disabled={isLoading}
-                style={styles.exampleButton}
-              >
-                예제
-              </Button>
             </View>
 
             <Divider style={styles.divider} />
@@ -138,9 +113,14 @@ const ImportModal: React.FC<ImportModalProps> = ({ visible, onDismiss }) => {
               value={pgnText}
               onChangeText={setPgnText}
               placeholder="PGN 텍스트를 여기에 붙여넣으세요..."
+              placeholderTextColor="#888888"
               multiline
               numberOfLines={8}
               style={styles.textInput}
+              textColor="#e0e0e0"
+              outlineColor="#777777"
+              activeOutlineColor="#9C27B0"
+              contentStyle={{ color: '#e0e0e0' }}
               disabled={isLoading}
             />
 
@@ -187,9 +167,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   fileButton: {
-    flex: 2,
-  },
-  exampleButton: {
     flex: 1,
   },
   divider: {
@@ -205,7 +182,7 @@ const styles = StyleSheet.create({
   textInput: {
     backgroundColor: '#1a1916',
     marginBottom: 20,
-    color: '#ffffff',
+    color: '#e0e0e0',
   },
   actionButtons: {
     gap: 12,

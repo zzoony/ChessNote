@@ -524,8 +524,10 @@ const parseSANMove = (san: string, position: BoardPosition, turn: 'white' | 'bla
   let moveStr = cleanSan;
   
   if (/^[KQRBN]/.test(cleanSan)) {
-    const pieceMap = { K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight' };
-    pieceType = pieceMap[cleanSan[0] as keyof typeof pieceMap];
+    const pieceMap: Record<string, ChessPiece['type']> = { 
+      K: 'king', Q: 'queen', R: 'rook', B: 'bishop', N: 'knight' 
+    };
+    pieceType = pieceMap[cleanSan[0]] || 'pawn';
     moveStr = cleanSan.slice(1);
   }
   
